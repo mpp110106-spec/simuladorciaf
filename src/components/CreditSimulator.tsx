@@ -10,7 +10,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Calculator, GraduationCap, BookOpen, DollarSign, CreditCard, CheckCircle2 } from "lucide-react";
+import logoCiaf from "@/assets/logo-ciaf-azul.png";
+import { Calculator, BookOpen, DollarSign, CreditCard, CheckCircle2, GraduationCap } from "lucide-react";
 import { toast } from "sonner";
 
 // Lista completa de programas académicos CIAF
@@ -168,11 +169,16 @@ const CreditSimulator = () => {
       <div className="max-w-4xl mx-auto">
         {/* Header */}
         <header className="text-center mb-10 animate-fade-in">
-          <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl gradient-primary shadow-card mb-6">
-            <GraduationCap className="w-10 h-10 text-primary-foreground" />
+          <div className="flex flex-col items-center gap-4 mb-6">
+            <img 
+              src={logoCiaf} 
+              alt="Logo CIAF - Centro de Instrucción y Aprendizaje Financiero" 
+              className="h-16 sm:h-20 w-auto object-contain"
+            />
+            <div className="h-1 w-24 gradient-primary rounded-full" />
           </div>
           <h1 className="text-3xl sm:text-4xl font-bold text-primary mb-3">
-            Simulador de Créditos CIAF
+            Simulador de Créditos
           </h1>
           <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
             Calcula el valor de tu matrícula, cuota inicial y plan de pagos de forma rápida y sencilla
