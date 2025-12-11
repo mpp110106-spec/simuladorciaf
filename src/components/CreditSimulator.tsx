@@ -38,7 +38,7 @@ const PROGRAMAS_ACADEMICOS = [
 ];
 
 const PORCENTAJES_CUOTA_INICIAL = [20, 30, 40, 50];
-const OPCIONES_CUOTAS = [4, 5, 6, 7];
+const OPCIONES_CUOTAS = [4, 5, 6];
 const SEMESTRES = Array.from({ length: 10 }, (_, i) => i + 1);
 
 // Costos fijos adicionales incluidos en la cuota inicial
