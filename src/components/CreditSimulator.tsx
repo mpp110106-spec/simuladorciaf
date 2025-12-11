@@ -43,8 +43,7 @@ const SEMESTRES = Array.from({ length: 10 }, (_, i) => i + 1);
 
 // Costos fijos adicionales incluidos en la cuota inicial
 const ESTUDIO_CREDITO = 45000;
-const SEGURO_ESTUDIANTIL = 14080;
-const COSTOS_FIJOS = ESTUDIO_CREDITO + SEGURO_ESTUDIANTIL;
+const SEGURO_ESTUDIANTIL = 14080; // Solo aplica para semestres impares
 
 // Formatear moneda colombiana
 const formatCurrency = (value: number): string => {
@@ -131,6 +130,7 @@ const CreditSimulator = () => {
     if (!validarFormulario()) return;
 
     const total = parseInputValue(valorTotal);
+    const semestreNum = parseInt(semestre, 10);
     let cuotaInicialBase: number;
 
     if (tipoCuotaInicial === "porcentaje") {
@@ -139,19 +139,23 @@ const CreditSimulator = () => {
       cuotaInicialBase = parseInputValue(montoCuotaInicial);
     }
 
-    // Cuota inicial total = base + estudio de crédito + seguro estudiantil
-    const cuotaInicialTotal = cuotaInicialBase + COSTOS_FIJOS;
+    // Seguro estudiantil solo aplica para semestres impares (1, 3, 5, 7, 9)
+    const esSestreImpar = semestreNum % 2 !== 0;
+    const seguroAplicable = esSestreImpar ? SEGURO_ESTUDIANTIL : 0;
+
+    // Cuota inicial total = base + estudio de crédito + seguro estudiantil (si aplica)
+    const cuotaInicialTotal = cuotaInicialBase + ESTUDIO_CREDITO + seguroAplicable;
     const montoFinanciar = total - cuotaInicialBase;
     const numCuotas = parseInt(cantidadCuotas, 10);
     const valorPorCuota = montoFinanciar / numCuotas;
 
     const resultado: ResultadosSimulacion = {
       programa,
-      semestre: parseInt(semestre, 10),
+      semestre: semestreNum,
       valorTotal: total,
       cuotaInicialBase: Math.round(cuotaInicialBase),
       estudioCredito: ESTUDIO_CREDITO,
-      seguroEstudiantil: SEGURO_ESTUDIANTIL,
+      seguroEstudiantil: seguroAplicable,
       cuotaInicialTotal: Math.round(cuotaInicialTotal),
       porcentajeCuotaInicial: Math.round(porcentajeReal * 100) / 100,
       montoFinanciar: Math.round(montoFinanciar),
