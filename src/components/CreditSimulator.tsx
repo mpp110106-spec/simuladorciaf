@@ -350,7 +350,7 @@ const CreditSimulator = () => {
                   <CreditCard className="w-4 h-4 text-secondary" />
                   Número de Cuotas
                 </Label>
-                <div className="grid grid-cols-4 gap-2">
+                <div className="grid grid-cols-3 gap-2">
                   {OPCIONES_CUOTAS.map((num) => (
                     <button
                       key={num}
