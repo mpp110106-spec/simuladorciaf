@@ -41,6 +41,11 @@ const PORCENTAJES_CUOTA_INICIAL = [20, 30, 40, 50];
 const OPCIONES_CUOTAS = [4, 5, 6, 7];
 const SEMESTRES = Array.from({ length: 10 }, (_, i) => i + 1);
 
+// Costos fijos adicionales incluidos en la cuota inicial
+const ESTUDIO_CREDITO = 45000;
+const SEGURO_ESTUDIANTIL = 14080;
+const COSTOS_FIJOS = ESTUDIO_CREDITO + SEGURO_ESTUDIANTIL;
+
 // Formatear moneda colombiana
 const formatCurrency = (value: number): string => {
   return new Intl.NumberFormat("es-CO", {
@@ -61,7 +66,10 @@ interface ResultadosSimulacion {
   programa: string;
   semestre: number;
   valorTotal: number;
-  cuotaInicial: number;
+  cuotaInicialBase: number;
+  estudioCredito: number;
+  seguroEstudiantil: number;
+  cuotaInicialTotal: number;
   porcentajeCuotaInicial: number;
   montoFinanciar: number;
   cantidadCuotas: number;
@@ -123,15 +131,17 @@ const CreditSimulator = () => {
     if (!validarFormulario()) return;
 
     const total = parseInputValue(valorTotal);
-    let cuotaInicialCalculada: number;
+    let cuotaInicialBase: number;
 
     if (tipoCuotaInicial === "porcentaje") {
-      cuotaInicialCalculada = (total * parseInt(porcentajeCuotaInicial, 10)) / 100;
+      cuotaInicialBase = (total * parseInt(porcentajeCuotaInicial, 10)) / 100;
     } else {
-      cuotaInicialCalculada = parseInputValue(montoCuotaInicial);
+      cuotaInicialBase = parseInputValue(montoCuotaInicial);
     }
 
-    const montoFinanciar = total - cuotaInicialCalculada;
+    // Cuota inicial total = base + estudio de crédito + seguro estudiantil
+    const cuotaInicialTotal = cuotaInicialBase + COSTOS_FIJOS;
+    const montoFinanciar = total - cuotaInicialBase;
     const numCuotas = parseInt(cantidadCuotas, 10);
     const valorPorCuota = montoFinanciar / numCuotas;
 
@@ -139,7 +149,10 @@ const CreditSimulator = () => {
       programa,
       semestre: parseInt(semestre, 10),
       valorTotal: total,
-      cuotaInicial: Math.round(cuotaInicialCalculada),
+      cuotaInicialBase: Math.round(cuotaInicialBase),
+      estudioCredito: ESTUDIO_CREDITO,
+      seguroEstudiantil: SEGURO_ESTUDIANTIL,
+      cuotaInicialTotal: Math.round(cuotaInicialTotal),
       porcentajeCuotaInicial: Math.round(porcentajeReal * 100) / 100,
       montoFinanciar: Math.round(montoFinanciar),
       cantidadCuotas: numCuotas,
@@ -402,7 +415,7 @@ const CreditSimulator = () => {
                     <span className="font-bold text-lg text-foreground">{formatCurrency(resultados.valorTotal)}</span>
                   </div>
 
-                  {/* Cuota Inicial */}
+                  {/* Cuota Inicial Base */}
                   <div className="flex items-center justify-between py-3 border-b border-border">
                     <div>
                       <span className="text-muted-foreground">Cuota Inicial</span>
@@ -410,7 +423,25 @@ const CreditSimulator = () => {
                         {resultados.porcentajeCuotaInicial}%
                       </span>
                     </div>
-                    <span className="font-bold text-lg text-secondary">{formatCurrency(resultados.cuotaInicial)}</span>
+                    <span className="font-semibold text-foreground">{formatCurrency(resultados.cuotaInicialBase)}</span>
+                  </div>
+
+                  {/* Estudio de Crédito */}
+                  <div className="flex items-center justify-between py-2 border-b border-border/50 pl-4">
+                    <span className="text-sm text-muted-foreground">+ Estudio de Crédito</span>
+                    <span className="text-sm font-medium text-foreground">{formatCurrency(resultados.estudioCredito)}</span>
+                  </div>
+
+                  {/* Seguro Estudiantil */}
+                  <div className="flex items-center justify-between py-2 border-b border-border/50 pl-4">
+                    <span className="text-sm text-muted-foreground">+ Seguro Estudiantil</span>
+                    <span className="text-sm font-medium text-foreground">{formatCurrency(resultados.seguroEstudiantil)}</span>
+                  </div>
+
+                  {/* Total Cuota Inicial */}
+                  <div className="flex items-center justify-between py-3 border-b border-border bg-muted/30 rounded-lg px-3 -mx-1">
+                    <span className="font-medium text-foreground">Total a Pagar (Cuota Inicial)</span>
+                    <span className="font-bold text-lg text-secondary">{formatCurrency(resultados.cuotaInicialTotal)}</span>
                   </div>
 
                   {/* Monto a Financiar */}
