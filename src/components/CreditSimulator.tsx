@@ -14,32 +14,84 @@ import logoCiaf from "@/assets/logo-ciaf-azul.png";
 import { Calculator, BookOpen, DollarSign, CreditCard, CheckCircle2, GraduationCap } from "lucide-react";
 import { toast } from "sonner";
 
-// Lista completa de programas académicos CIAF
-const PROGRAMAS_ACADEMICOS = [
-  "Profesional en Administración de Empresas",
-  "Profesional en Contaduría Pública INTEP 2021",
-  "Profesional en Ingeniería de Software",
-  "Profesional en Ingeniería Industrial",
-  "Profesional en Seguridad y Salud en el Trabajo",
-  "Técnica Profesional en Programación de Software",
-  "Técnico Laboral en Mecánica y Mantenimiento de Motocicletas",
-  "Técnico Laboral por Competencias en Administrativo en Salud",
-  "Técnico Laboral por Competencias en Auxiliar de Veterinaria",
-  "Técnico Laboral por Competencias en Auxiliar en Enfermería",
-  "Técnico Profesional en Logística de Producción",
-  "Técnico Profesional en Operaciones Contables y Financieras",
-  "Técnico Profesional en Procesos de Seguridad y Salud en el Trabajo",
-  "Técnico Profesional en Procesos Empresariales",
-  "Tecnología en Desarrollo de Software",
-  "Tecnología en Gestión Contable INTEP 2025",
-  "Tecnología en Gestión de la Seguridad y Salud en el Trabajo",
-  "Tecnología en Gestión Industrial",
-  "Tecnología en Gestión y Auditoría Administrativa",
-];
+// Mapa de precios de matrícula por programa y semestre (Matrícula Ordinaria 2025-I)
+const PRECIOS_MATRICULA: Record<string, Record<number, number>> = {
+  "Técnico Profesional en Procesos Empresariales": {
+    1: 2289000, 2: 2155000, 3: 2368000, 4: 2460000
+  },
+  "Tecnología en Gestión y Auditoría Administrativa": {
+    5: 2516000, 6: 2585000, 7: 2689000
+  },
+  "Profesional en Administración de Empresas": {
+    8: 3101000, 9: 3176000, 10: 3288000
+  },
+  "Técnica Profesional en Programación de Software": {
+    1: 2442000, 2: 2299000, 3: 2356000, 4: 2414000
+  },
+  "Tecnología en Desarrollo de Software": {
+    5: 2862000, 6: 2931000, 7: 3035000
+  },
+  "Profesional en Ingeniería de Software": {
+    8: 3340000, 9: 3421000, 10: 3541000
+  },
+  "Técnico Profesional en Procesos de Seguridad y Salud en el Trabajo": {
+    1: 2442000, 2: 2443000, 3: 2529000, 4: 2587000
+  },
+  "Tecnología en Gestión de la Seguridad y Salud en el Trabajo": {
+    5: 2862000, 6: 2931000
+  },
+  "Profesional en Seguridad y Salud en el Trabajo": {
+    7: 2913000, 8: 3101000, 9: 3176000, 10: 3288000
+  },
+  "Técnico Profesional en Logística de Producción": {
+    1: 2450000, 2: 2461000, 3: 2522000, 4: 2584000
+  },
+  "Tecnología en Gestión Industrial": {
+    5: 3065000, 6: 3139000, 7: 3250000
+  },
+  "Profesional en Ingeniería Industrial": {
+    8: 3319000, 9: 3399000, 10: 3520000
+  },
+  "Técnico Laboral en Mecánica y Mantenimiento de Motocicletas": {
+    1: 2052000, 2: 2052000
+  },
+  "Técnico Laboral por Competencias en Auxiliar en Enfermería": {
+    1: 2268000, 2: 2327000, 3: 2358000
+  },
+  "Técnico Laboral por Competencias en Administrativo en Salud": {
+    1: 1779000, 2: 1859000, 3: 1915000
+  },
+  "Técnico Laboral por Competencias en Auxiliar de Veterinaria": {
+    1: 2201000, 2: 2324000
+  },
+  "Técnico Profesional en Operaciones Contables y Financieras": {
+    1: 2018000, 2: 2018000, 3: 2018000, 4: 2018000
+  },
+  "Tecnología en Gestión Contable INTEP 2025": {
+    5: 2564000, 6: 2564000, 7: 2564000
+  },
+  "Profesional en Contaduría Pública INTEP 2021": {
+    8: 3101000, 9: 3356000, 10: 3475000
+  }
+};
+
+// Lista completa de programas académicos CIAF (ordenados alfabéticamente)
+const PROGRAMAS_ACADEMICOS = Object.keys(PRECIOS_MATRICULA).sort();
+
+// Obtener semestres disponibles para un programa
+const getSemestresDisponibles = (programa: string): number[] => {
+  if (!programa || !PRECIOS_MATRICULA[programa]) return [];
+  return Object.keys(PRECIOS_MATRICULA[programa]).map(Number).sort((a, b) => a - b);
+};
+
+// Obtener precio de matrícula
+const getPrecioMatricula = (programa: string, semestre: number): number | null => {
+  if (!programa || !PRECIOS_MATRICULA[programa]) return null;
+  return PRECIOS_MATRICULA[programa][semestre] || null;
+};
 
 const PORCENTAJES_CUOTA_INICIAL = [20, 30, 40, 50];
 const OPCIONES_CUOTAS = [4, 5, 6];
-const SEMESTRES = Array.from({ length: 10 }, (_, i) => i + 1);
 
 // Costos fijos adicionales incluidos en la cuota inicial
 const ESTUDIO_CREDITO = 45000;
@@ -85,6 +137,24 @@ const CreditSimulator = () => {
   const [cantidadCuotas, setCantidadCuotas] = useState<string>("4");
   const [resultados, setResultados] = useState<ResultadosSimulacion | null>(null);
   const [mostrarResultados, setMostrarResultados] = useState(false);
+
+  // Semestres disponibles para el programa seleccionado
+  const semestresDisponibles = useMemo(() => getSemestresDisponibles(programa), [programa]);
+
+  // Auto-llenar precio cuando cambia programa o semestre
+  const handleProgramaChange = (nuevoPrograma: string) => {
+    setPrograma(nuevoPrograma);
+    setSemestre("");
+    setValorTotal("");
+  };
+
+  const handleSemestreChange = (nuevoSemestre: string) => {
+    setSemestre(nuevoSemestre);
+    const precio = getPrecioMatricula(programa, parseInt(nuevoSemestre, 10));
+    if (precio) {
+      setValorTotal(precio.toString());
+    }
+  };
 
   // Calcular porcentaje real de cuota inicial
   const porcentajeReal = useMemo(() => {
@@ -218,7 +288,7 @@ const CreditSimulator = () => {
                   <BookOpen className="w-4 h-4 text-secondary" />
                   Programa Académico
                 </Label>
-                <Select value={programa} onValueChange={setPrograma}>
+                <Select value={programa} onValueChange={handleProgramaChange}>
                   <SelectTrigger id="programa" className="h-12 bg-card border-input hover:border-secondary transition-colors">
                     <SelectValue placeholder="Seleccione su programa" />
                   </SelectTrigger>
@@ -238,12 +308,16 @@ const CreditSimulator = () => {
                   <GraduationCap className="w-4 h-4 text-secondary" />
                   Semestre
                 </Label>
-                <Select value={semestre} onValueChange={setSemestre}>
+                <Select 
+                  value={semestre} 
+                  onValueChange={handleSemestreChange}
+                  disabled={!programa}
+                >
                   <SelectTrigger id="semestre" className="h-12 bg-card border-input hover:border-secondary transition-colors">
-                    <SelectValue placeholder="Seleccione el semestre" />
+                    <SelectValue placeholder={programa ? "Seleccione el semestre" : "Primero seleccione un programa"} />
                   </SelectTrigger>
                   <SelectContent className="bg-popover border-border z-50">
-                    {SEMESTRES.map((sem) => (
+                    {semestresDisponibles.map((sem) => (
                       <SelectItem key={sem} value={sem.toString()} className="cursor-pointer hover:bg-muted">
                         Semestre {sem}
                       </SelectItem>
