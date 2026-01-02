@@ -14,7 +14,7 @@ import logoCiaf from "@/assets/logo-ciaf-azul.png";
 import { Calculator, BookOpen, DollarSign, CreditCard, CheckCircle2, GraduationCap } from "lucide-react";
 import { toast } from "sonner";
 
-// Mapa de precios de matrícula por programa y semestre (Matrícula Ordinaria 2025-II)
+// Mapa de precios de matrícula por programa y semestre (Matrícula Ordinaria 2026)
 const PRECIOS_MATRICULA: Record<string, Record<number, number>> = {
   "Técnico Profesional en Procesos Empresariales": {
     1: 2512000, 2: 2512000, 3: 2512000, 4: 2512000
