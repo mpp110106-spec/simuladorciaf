@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useEffect, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -10,6 +10,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import logoCiaf from "@/assets/logo-ciaf-azul.png";
 import qrDaviplata from "@/assets/qr-daviplata-ciaf.png";
 import { Calculator, BookOpen, DollarSign, CreditCard, CheckCircle2, GraduationCap, MessageCircle, Wallet, Mail } from "lucide-react";
@@ -138,7 +144,26 @@ const CreditSimulator = () => {
   const [cantidadCuotas, setCantidadCuotas] = useState<string>("4");
   const [resultados, setResultados] = useState<ResultadosSimulacion | null>(null);
   const [mostrarResultados, setMostrarResultados] = useState(false);
-  const [pasoConfirmacion, setPasoConfirmacion] = useState<"pregunta" | "pagar" | "asesora" | null>(null);
+  const [modalAbierto, setModalAbierto] = useState(false);
+  const [pasoModal, setPasoModal] = useState<"pregunta" | "pagar" | "asesora">("pregunta");
+  const [modalMostrado, setModalMostrado] = useState(false);
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Timer para mostrar el modal después de 60 segundos
+  useEffect(() => {
+    if (mostrarResultados && resultados && !modalMostrado) {
+      timerRef.current = setTimeout(() => {
+        setModalAbierto(true);
+        setModalMostrado(true);
+      }, 60000); // 60 segundos
+    }
+
+    return () => {
+      if (timerRef.current) {
+        clearTimeout(timerRef.current);
+      }
+    };
+  }, [mostrarResultados, resultados, modalMostrado]);
 
   // Semestres disponibles para el programa seleccionado
   const semestresDisponibles = useMemo(() => getSemestresDisponibles(programa), [programa]);
@@ -251,20 +276,26 @@ const CreditSimulator = () => {
     setCantidadCuotas("4");
     setResultados(null);
     setMostrarResultados(false);
-    setPasoConfirmacion(null);
+    setModalAbierto(false);
+    setPasoModal("pregunta");
+    setModalMostrado(false);
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
+    }
   };
 
-  // Manejar selección de confirmación
-  const handleConfirmacionSi = () => {
-    setPasoConfirmacion("pagar");
+  // Manejar selección en el modal
+  const handleModalSi = () => {
+    setPasoModal("pagar");
   };
 
-  const handleConfirmacionNo = () => {
-    setPasoConfirmacion("asesora");
+  const handleModalNo = () => {
+    setPasoModal("asesora");
   };
 
-  const volverAResultados = () => {
-    setPasoConfirmacion(null);
+  const cerrarModal = () => {
+    setModalAbierto(false);
+    setPasoModal("pregunta");
   };
 
   return (
@@ -563,110 +594,6 @@ const CreditSimulator = () => {
                     * Esta es una simulación orientativa. Los valores definitivos pueden variar según las condiciones establecidas por CIAF.
                   </p>
 
-                  {/* Paso de confirmación */}
-                  {pasoConfirmacion === null && (
-                    <div className="mt-6 p-5 bg-muted/50 rounded-xl border border-border animate-fade-in">
-                      <h3 className="font-semibold text-foreground text-center mb-4 text-lg">
-                        ¿Deseas financiar ya?
-                      </h3>
-                      <div className="flex gap-3">
-                        <Button
-                          onClick={handleConfirmacionSi}
-                          className="flex-1 h-12 gradient-primary hover:opacity-90 text-primary-foreground font-semibold"
-                        >
-                          Sí
-                        </Button>
-                        <Button
-                          onClick={handleConfirmacionNo}
-                          variant="outline"
-                          className="flex-1 h-12 border-input hover:bg-muted font-semibold"
-                        >
-                          No
-                        </Button>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Instrucciones de pago */}
-                  {pasoConfirmacion === "pagar" && (
-                    <div className="mt-6 p-5 bg-secondary/10 rounded-xl border border-secondary/30 animate-fade-in space-y-4">
-                      <div className="flex items-center gap-2 text-secondary">
-                        <Wallet className="w-5 h-5" />
-                        <h3 className="font-semibold text-lg">Instrucciones de Pago</h3>
-                      </div>
-                      
-                      <div className="space-y-3 text-foreground">
-                        <p className="text-sm leading-relaxed">
-                          Para completar tu financiación, realiza el pago de tu cuota inicial:
-                        </p>
-                        
-                        {/* Código QR */}
-                        <div className="bg-card rounded-lg p-4 border border-border flex flex-col items-center">
-                          <img 
-                            src={qrDaviplata} 
-                            alt="Código QR Daviplata CIAF" 
-                            className="w-full max-w-[280px] h-auto rounded-lg"
-                          />
-                        </div>
-
-                        <div className="bg-card rounded-lg p-4 border border-border text-center">
-                          <p className="text-xs text-muted-foreground mb-1">También puedes pagar con Daviplata</p>
-                          <p className="font-bold text-lg text-secondary">@daviciaf</p>
-                        </div>
-
-                        <div className="bg-card rounded-lg p-4 border border-border space-y-2">
-                          <div className="flex items-center gap-2 text-foreground">
-                            <Mail className="w-4 h-4 text-secondary" />
-                            <p className="font-medium">Envía tu comprobante a:</p>
-                          </div>
-                          <p className="font-semibold text-secondary">pagos@ciaf.edu.co</p>
-                        </div>
-
-                        <div className="bg-amber-50 dark:bg-amber-950/30 rounded-lg p-4 border border-amber-200 dark:border-amber-800">
-                          <p className="text-sm font-medium text-amber-800 dark:text-amber-200 mb-2">
-                            📌 El asunto del correo debe incluir:
-                          </p>
-                          <ul className="text-sm text-amber-700 dark:text-amber-300 space-y-1 list-disc list-inside">
-                            <li>Nombre completo</li>
-                            <li>Número de cédula</li>
-                            <li>Programa</li>
-                            <li>Semestre</li>
-                            <li>Descripción del pago</li>
-                          </ul>
-                        </div>
-                      </div>
-
-                      <Button
-                        onClick={volverAResultados}
-                        variant="ghost"
-                        className="w-full mt-2 text-muted-foreground hover:text-foreground"
-                      >
-                        ← Volver al resumen
-                      </Button>
-                    </div>
-                  )}
-
-                  {/* Mensaje para asesora */}
-                  {pasoConfirmacion === "asesora" && (
-                    <div className="mt-6 p-5 bg-primary/10 rounded-xl border border-primary/30 animate-fade-in space-y-4">
-                      <div className="flex items-center gap-2 text-primary">
-                        <MessageCircle className="w-5 h-5" />
-                        <h3 className="font-semibold text-lg">Contacta a tu Asesora</h3>
-                      </div>
-                      
-                      <p className="text-foreground text-sm leading-relaxed">
-                        Por favor, continúa la conversación con tu asesora. Ella te brindará toda la información que necesitas sobre tu financiación y resolverá tus dudas.
-                      </p>
-
-                      <Button
-                        onClick={volverAResultados}
-                        variant="ghost"
-                        className="w-full mt-2 text-muted-foreground hover:text-foreground"
-                      >
-                        ← Volver al resumen
-                      </Button>
-                    </div>
-                  )}
                 </div>
               ) : (
                 <div className="flex flex-col items-center justify-center py-12 text-center">
@@ -689,6 +616,119 @@ const CreditSimulator = () => {
           </p>
         </footer>
       </div>
+
+      {/* Modal de confirmación */}
+      <Dialog open={modalAbierto} onOpenChange={() => {}}>
+        <DialogContent 
+          className="sm:max-w-md max-h-[90vh] overflow-y-auto"
+          onPointerDownOutside={(e) => e.preventDefault()}
+          onEscapeKeyDown={(e) => e.preventDefault()}
+        >
+          {pasoModal === "pregunta" && (
+            <>
+              <DialogHeader>
+                <DialogTitle className="text-center text-xl">
+                  ¿Deseas financiar ya?
+                </DialogTitle>
+              </DialogHeader>
+              <div className="flex gap-3 mt-6">
+                <Button
+                  onClick={handleModalSi}
+                  className="flex-1 h-12 gradient-primary hover:opacity-90 text-primary-foreground font-semibold"
+                >
+                  Sí
+                </Button>
+                <Button
+                  onClick={handleModalNo}
+                  variant="outline"
+                  className="flex-1 h-12 border-input hover:bg-muted font-semibold"
+                >
+                  No
+                </Button>
+              </div>
+            </>
+          )}
+
+          {pasoModal === "pagar" && (
+            <div className="space-y-4">
+              <DialogHeader>
+                <DialogTitle className="flex items-center gap-2 text-secondary">
+                  <Wallet className="w-5 h-5" />
+                  Instrucciones de Pago
+                </DialogTitle>
+              </DialogHeader>
+              
+              <p className="text-sm text-foreground leading-relaxed">
+                Para completar tu financiación, realiza el pago de tu cuota inicial:
+              </p>
+              
+              {/* Código QR */}
+              <div className="bg-muted rounded-lg p-4 flex flex-col items-center">
+                <img 
+                  src={qrDaviplata} 
+                  alt="Código QR Daviplata CIAF" 
+                  className="w-full max-w-[240px] h-auto rounded-lg"
+                />
+              </div>
+
+              <div className="bg-muted rounded-lg p-3 text-center">
+                <p className="text-xs text-muted-foreground mb-1">También puedes pagar con Daviplata</p>
+                <p className="font-bold text-lg text-secondary">@daviciaf</p>
+              </div>
+
+              <div className="bg-muted rounded-lg p-3 space-y-1">
+                <div className="flex items-center gap-2 text-foreground">
+                  <Mail className="w-4 h-4 text-secondary" />
+                  <p className="font-medium text-sm">Envía tu comprobante a:</p>
+                </div>
+                <p className="font-semibold text-secondary">pagos@ciaf.edu.co</p>
+              </div>
+
+              <div className="bg-amber-50 dark:bg-amber-950/30 rounded-lg p-3 border border-amber-200 dark:border-amber-800">
+                <p className="text-sm font-medium text-amber-800 dark:text-amber-200 mb-2">
+                  📌 El asunto del correo debe incluir:
+                </p>
+                <ul className="text-xs text-amber-700 dark:text-amber-300 space-y-1 list-disc list-inside">
+                  <li>Nombre completo</li>
+                  <li>Número de cédula</li>
+                  <li>Programa</li>
+                  <li>Semestre</li>
+                  <li>Descripción del pago</li>
+                </ul>
+              </div>
+
+              <Button
+                onClick={cerrarModal}
+                className="w-full h-10 gradient-primary text-primary-foreground font-semibold"
+              >
+                Entendido
+              </Button>
+            </div>
+          )}
+
+          {pasoModal === "asesora" && (
+            <div className="space-y-4">
+              <DialogHeader>
+                <DialogTitle className="flex items-center gap-2 text-primary">
+                  <MessageCircle className="w-5 h-5" />
+                  Contacta a tu Asesora
+                </DialogTitle>
+              </DialogHeader>
+              
+              <p className="text-foreground text-sm leading-relaxed">
+                Por favor, continúa la conversación con tu asesora. Ella te brindará toda la información que necesitas sobre tu financiación y resolverá tus dudas.
+              </p>
+
+              <Button
+                onClick={cerrarModal}
+                className="w-full h-10 gradient-primary text-primary-foreground font-semibold"
+              >
+                Entendido
+              </Button>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
