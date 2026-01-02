@@ -11,6 +11,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import logoCiaf from "@/assets/logo-ciaf-azul.png";
+import qrDaviplata from "@/assets/qr-daviplata-ciaf.png";
 import { Calculator, BookOpen, DollarSign, CreditCard, CheckCircle2, GraduationCap, MessageCircle, Wallet, Mail } from "lucide-react";
 import { toast } from "sonner";
 
@@ -599,8 +600,17 @@ const CreditSimulator = () => {
                           Para completar tu financiación, realiza el pago de tu cuota inicial:
                         </p>
                         
-                        <div className="bg-card rounded-lg p-4 border border-border">
-                          <p className="text-xs text-muted-foreground mb-1">Daviplata</p>
+                        {/* Código QR */}
+                        <div className="bg-card rounded-lg p-4 border border-border flex flex-col items-center">
+                          <img 
+                            src={qrDaviplata} 
+                            alt="Código QR Daviplata CIAF" 
+                            className="w-full max-w-[280px] h-auto rounded-lg"
+                          />
+                        </div>
+
+                        <div className="bg-card rounded-lg p-4 border border-border text-center">
+                          <p className="text-xs text-muted-foreground mb-1">También puedes pagar con Daviplata</p>
                           <p className="font-bold text-lg text-secondary">@daviciaf</p>
                         </div>
 
