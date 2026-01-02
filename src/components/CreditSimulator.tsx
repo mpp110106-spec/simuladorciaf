@@ -14,64 +14,64 @@ import logoCiaf from "@/assets/logo-ciaf-azul.png";
 import { Calculator, BookOpen, DollarSign, CreditCard, CheckCircle2, GraduationCap } from "lucide-react";
 import { toast } from "sonner";
 
-// Mapa de precios de matrícula por programa y semestre (Matrícula Ordinaria 2025-I)
+// Mapa de precios de matrícula por programa y semestre (Matrícula Ordinaria 2025-II)
 const PRECIOS_MATRICULA: Record<string, Record<number, number>> = {
   "Técnico Profesional en Procesos Empresariales": {
-    1: 2289000, 2: 2155000, 3: 2368000, 4: 2460000
+    1: 2512000, 2: 2512000, 3: 2512000, 4: 2512000
   },
   "Tecnología en Gestión y Auditoría Administrativa": {
-    5: 2516000, 6: 2585000, 7: 2689000
+    5: 2628000, 6: 2628000, 7: 2628000
   },
   "Profesional en Administración de Empresas": {
-    8: 3101000, 9: 3176000, 10: 3288000
+    8: 3223000, 9: 3223000, 10: 3223000
   },
   "Técnica Profesional en Programación de Software": {
-    1: 2442000, 2: 2299000, 3: 2356000, 4: 2414000
+    1: 2640000, 2: 2640000, 3: 2640000, 4: 2640000
   },
   "Tecnología en Desarrollo de Software": {
-    5: 2862000, 6: 2931000, 7: 3035000
+    5: 3014000, 6: 3014000, 7: 3014000
   },
   "Profesional en Ingeniería de Software": {
-    8: 3340000, 9: 3421000, 10: 3541000
+    8: 3561000, 9: 3561000, 10: 3561000
   },
   "Técnico Profesional en Procesos de Seguridad y Salud en el Trabajo": {
-    1: 2442000, 2: 2443000, 3: 2529000, 4: 2587000
+    1: 2640000, 2: 2640000, 3: 2640000, 4: 2640000
   },
   "Tecnología en Gestión de la Seguridad y Salud en el Trabajo": {
-    5: 2862000, 6: 2931000
+    5: 2937000, 6: 2937000
   },
   "Profesional en Seguridad y Salud en el Trabajo": {
-    7: 2913000, 8: 3101000, 9: 3176000, 10: 3288000
+    7: 3223000, 8: 3223000, 9: 3223000, 10: 3223000
   },
   "Técnico Profesional en Logística de Producción": {
-    1: 2450000, 2: 2461000, 3: 2522000, 4: 2584000
+    1: 2654000, 2: 2654000, 3: 2654000, 4: 2654000
   },
   "Tecnología en Gestión Industrial": {
-    5: 3065000, 6: 3139000, 7: 3250000
+    5: 3227000, 6: 3227000, 7: 3227000
   },
   "Profesional en Ingeniería Industrial": {
-    8: 3319000, 9: 3399000, 10: 3520000
+    8: 3540000, 9: 3540000, 10: 3540000
   },
   "Técnico Laboral en Mecánica y Mantenimiento de Motocicletas": {
-    1: 2052000, 2: 2052000
+    1: 2224000, 2: 2224000
   },
   "Técnico Laboral por Competencias en Auxiliar en Enfermería": {
-    1: 2268000, 2: 2327000, 3: 2358000
+    1: 2365000, 2: 2365000, 3: 2365000
   },
   "Técnico Laboral por Competencias en Administrativo en Salud": {
-    1: 1779000, 2: 1859000, 3: 1915000
+    1: 1863000, 2: 1863000, 3: 1863000
   },
   "Técnico Laboral por Competencias en Auxiliar de Veterinaria": {
-    1: 2201000, 2: 2324000
+    1: 2400000, 2: 2400000
   },
   "Técnico Profesional en Operaciones Contables y Financieras": {
-    1: 2018000, 2: 2018000, 3: 2018000, 4: 2018000
+    1: 2129000, 2: 2129000, 3: 2129000, 4: 2129000
   },
   "Tecnología en Gestión Contable INTEP 2025": {
-    5: 2564000, 6: 2564000, 7: 2564000
+    5: 2705000, 6: 2705000, 7: 2705000
   },
   "Profesional en Contaduría Pública INTEP 2021": {
-    8: 3101000, 9: 3356000, 10: 3475000
+    8: 3349000, 9: 3349000, 10: 3349000
   }
 };
 
