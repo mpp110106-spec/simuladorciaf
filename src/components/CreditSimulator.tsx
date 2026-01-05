@@ -98,7 +98,7 @@ const getPrecioMatricula = (programa: string, semestre: number): number | null =
 };
 
 const PORCENTAJES_CUOTA_INICIAL = [20, 30, 40, 50];
-const OPCIONES_CUOTAS = [4, 5, 6];
+const OPCIONES_CUOTAS = [3, 4, 5];
 
 // Costos fijos adicionales incluidos en la cuota inicial
 const ESTUDIO_CREDITO = 48000;
