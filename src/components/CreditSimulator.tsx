@@ -155,7 +155,7 @@ const CreditSimulator = () => {
       timerRef.current = setTimeout(() => {
         setModalAbierto(true);
         setModalMostrado(true);
-      }, 60000); // 60 segundos
+      }, 10000); // 10 segundos para pruebas
     }
 
     return () => {
