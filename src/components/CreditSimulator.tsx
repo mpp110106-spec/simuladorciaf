@@ -101,8 +101,8 @@ const PORCENTAJES_CUOTA_INICIAL = [20, 30, 40, 50];
 const OPCIONES_CUOTAS = [4, 5, 6];
 
 // Costos fijos adicionales incluidos en la cuota inicial
-const ESTUDIO_CREDITO = 45000;
-const SEGURO_ESTUDIANTIL = 14080; // Solo aplica para semestres impares
+const ESTUDIO_CREDITO = 48000;
+const SEGURO_ESTUDIANTIL = 14860; // Solo aplica para semestres impares
 
 // Formatear moneda colombiana
 const formatCurrency = (value: number): string => {
