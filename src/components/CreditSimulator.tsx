@@ -15,10 +15,11 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
 } from "@/components/ui/dialog";
 import logoCiaf from "@/assets/logo-ciaf-azul.png";
 import qrDaviplata from "@/assets/qr-daviplata-ciaf.png";
-import { Calculator, BookOpen, DollarSign, CreditCard, CheckCircle2, GraduationCap, MessageCircle, Wallet, Mail } from "lucide-react";
+import { Calculator, BookOpen, DollarSign, CreditCard, CheckCircle2, GraduationCap, MessageCircle, Wallet, Mail, Banknote, Calendar, Shield, X } from "lucide-react";
 import { toast } from "sonner";
 
 // Mapa de precios de matrícula por programa y semestre (Matrícula Ordinaria 2026)
@@ -102,7 +103,11 @@ const OPCIONES_CUOTAS = [4, 5, 6];
 
 // Costos fijos adicionales incluidos en la cuota inicial
 const ESTUDIO_CREDITO = 48000;
-const SEGURO_ESTUDIANTIL = 14860; // Solo aplica para semestres impares
+const SEGURO_ESTUDIANTIL = 14860;
+
+// Constantes para el flujo de financiación
+const POPUP_TIMEOUT = 10000; // 10 segundos
+const FINANCING_DECISION_KEY = "ciaf_financing_decision";
 
 // Formatear moneda colombiana
 const formatCurrency = (value: number): string => {
@@ -134,6 +139,50 @@ interface ResultadosSimulacion {
   valorPorCuota: number;
 }
 
+// Componente: Barra Sticky Inferior
+const StickyFinancingBar = ({ 
+  visible,
+  onSelectFinancing,
+  onSelectCash
+}: { 
+  visible: boolean;
+  onSelectFinancing: () => void;
+  onSelectCash: () => void;
+}) => {
+  if (!visible) return null;
+
+  return (
+    <div 
+      className="fixed bottom-0 left-0 right-0 bg-white border-t z-50 animate-in slide-in-from-bottom duration-300"
+      style={{ boxShadow: "0 -4px 20px rgba(0, 0, 0, 0.1)" }}
+    >
+      <div className="max-w-2xl mx-auto px-4 py-4">
+        <p className="text-center text-sm text-muted-foreground mb-2">
+          Aún puedes elegir tu forma de pago
+        </p>
+        <p className="text-center font-medium mb-3">¿Deseas financiar?</p>
+        <div className="flex gap-3">
+          <Button 
+            onClick={onSelectFinancing}
+            className="flex-1 h-12 bg-blue-600 hover:bg-blue-700 text-white"
+          >
+            <CheckCircle2 className="w-4 h-4 mr-2" />
+            Sí, quiero financiar
+          </Button>
+          <Button 
+            onClick={onSelectCash}
+            variant="outline"
+            className="flex-1 h-12 border-gray-300"
+          >
+            <Banknote className="w-4 h-4 mr-2" />
+            No, pagaré de contado
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const CreditSimulator = () => {
   const [programa, setPrograma] = useState<string>("");
   const [semestre, setSemestre] = useState<string>("");
@@ -144,18 +193,30 @@ const CreditSimulator = () => {
   const [cantidadCuotas, setCantidadCuotas] = useState<string>("4");
   const [resultados, setResultados] = useState<ResultadosSimulacion | null>(null);
   const [mostrarResultados, setMostrarResultados] = useState(false);
-  const [modalAbierto, setModalAbierto] = useState(false);
-  const [pasoModal, setPasoModal] = useState<"pregunta" | "pagar" | "asesora">("pregunta");
-  const [modalMostrado, setModalMostrado] = useState(false);
+  
+  // Estados del flujo de financiación
+  const [financingPromptVisible, setFinancingPromptVisible] = useState(false);
+  const [financingDismissed, setFinancingDismissed] = useState(false);
+  const [stickyFinancingVisible, setStickyFinancingVisible] = useState(false);
+  const [paymentModalOpen, setPaymentModalOpen] = useState(false);
+  
   const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const popupTimerRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Timer para mostrar el modal después de 60 segundos
+  // Cargar decisión guardada de localStorage
   useEffect(() => {
-    if (mostrarResultados && resultados && !modalMostrado) {
+    const savedDecision = localStorage.getItem(FINANCING_DECISION_KEY);
+    if (savedDecision === "no") {
+      setFinancingDismissed(true);
+    }
+  }, []);
+
+  // Timer para mostrar el pop-up después de calcular
+  useEffect(() => {
+    if (mostrarResultados && resultados && !financingDismissed && !financingPromptVisible && !stickyFinancingVisible) {
       timerRef.current = setTimeout(() => {
-        setModalAbierto(true);
-        setModalMostrado(true);
-      }, 10000); // 10 segundos para pruebas
+        setFinancingPromptVisible(true);
+      }, 3000);
     }
 
     return () => {
@@ -163,7 +224,23 @@ const CreditSimulator = () => {
         clearTimeout(timerRef.current);
       }
     };
-  }, [mostrarResultados, resultados, modalMostrado]);
+  }, [mostrarResultados, resultados, financingDismissed, financingPromptVisible, stickyFinancingVisible]);
+
+  // Auto-cerrar pop-up y mostrar sticky después de 10 segundos
+  useEffect(() => {
+    if (financingPromptVisible) {
+      popupTimerRef.current = setTimeout(() => {
+        setFinancingPromptVisible(false);
+        setStickyFinancingVisible(true);
+      }, POPUP_TIMEOUT);
+    }
+
+    return () => {
+      if (popupTimerRef.current) {
+        clearTimeout(popupTimerRef.current);
+      }
+    };
+  }, [financingPromptVisible]);
 
   // Semestres disponibles para el programa seleccionado
   const semestresDisponibles = useMemo(() => getSemestresDisponibles(programa), [programa]);
@@ -276,26 +353,44 @@ const CreditSimulator = () => {
     setCantidadCuotas("4");
     setResultados(null);
     setMostrarResultados(false);
-    setModalAbierto(false);
-    setPasoModal("pregunta");
-    setModalMostrado(false);
+    setFinancingPromptVisible(false);
+    setStickyFinancingVisible(false);
+    setPaymentModalOpen(false);
     if (timerRef.current) {
       clearTimeout(timerRef.current);
     }
+    if (popupTimerRef.current) {
+      clearTimeout(popupTimerRef.current);
+    }
   };
 
-  // Manejar selección en el modal
-  const handleModalSi = () => {
-    setPasoModal("pagar");
+  // Handlers del flujo de financiación
+  const handleFinancingDialogClose = (open: boolean) => {
+    if (!open) {
+      setFinancingPromptVisible(false);
+      setStickyFinancingVisible(true);
+    }
   };
 
-  const handleModalNo = () => {
-    setPasoModal("asesora");
+  const handleSelectFinancing = () => {
+    setFinancingPromptVisible(false);
+    setStickyFinancingVisible(false);
+    setFinancingDismissed(true);
+    localStorage.setItem(FINANCING_DECISION_KEY, "yes");
+    // Abrir modal de pago
+    setPaymentModalOpen(true);
   };
 
-  const cerrarModal = () => {
-    setModalAbierto(false);
-    setPasoModal("pregunta");
+  const handleSelectCash = () => {
+    setFinancingPromptVisible(false);
+    setStickyFinancingVisible(false);
+    setFinancingDismissed(true);
+    localStorage.setItem(FINANCING_DECISION_KEY, "no");
+    toast.info("Perfecto, puedes pagar de contado cuando desees");
+  };
+
+  const handlePayInitialQuota = () => {
+    setPaymentModalOpen(true);
   };
 
   return (
@@ -511,7 +606,7 @@ const CreditSimulator = () => {
             </CardContent>
           </Card>
 
-          {/* Resultados */}
+          {/* Resultados con nueva jerarquía */}
           <Card 
             className={`shadow-card border-0 transition-all duration-500 ${
               mostrarResultados ? "opacity-100 animate-scale-in" : "opacity-50"
@@ -534,66 +629,87 @@ const CreditSimulator = () => {
                     <p className="text-sm text-secondary mt-2">Semestre {resultados.semestre}</p>
                   </div>
 
-                  {/* Valor Total */}
-                  <div className="flex items-center justify-between py-3 border-b border-border">
+                  {/* 1️⃣ CUOTA INICIAL - PRIORIDAD ALTA */}
+                  <div className="bg-gradient-to-br from-blue-50 to-blue-100 border-2 border-blue-200 rounded-xl p-5">
+                    <div className="flex items-center justify-center gap-2 text-blue-600 mb-2">
+                      <Banknote className="w-5 h-5" />
+                      <span className="text-sm font-medium uppercase tracking-wide">Cuota Inicial</span>
+                    </div>
+                    <p className="text-4xl font-bold text-blue-600 text-center">
+                      {formatCurrency(resultados.cuotaInicialTotal)}
+                    </p>
+                    <p className="text-sm text-blue-600/70 text-center mt-2">
+                      💳 Pago único para iniciar tu semestre
+                    </p>
+                    
+                    {/* Desglose cuota inicial */}
+                    <div className="mt-4 p-3 bg-white/60 rounded-lg text-xs space-y-1">
+                      <div className="flex justify-between text-blue-700/70">
+                        <span>Abono matrícula ({resultados.porcentajeCuotaInicial}%)</span>
+                        <span>{formatCurrency(resultados.cuotaInicialBase)}</span>
+                      </div>
+                      <div className="flex justify-between text-blue-700/70">
+                        <span>Estudio de crédito</span>
+                        <span>{formatCurrency(resultados.estudioCredito)}</span>
+                      </div>
+                      <div className="flex justify-between text-blue-700/70">
+                        <span>Seguro estudiantil</span>
+                        <span>{formatCurrency(resultados.seguroEstudiantil)}</span>
+                      </div>
+                    </div>
+
+                    {/* Botón pagar cuota inicial - AZUL */}
+                    <Button 
+                      onClick={handlePayInitialQuota}
+                      className="w-full h-14 mt-4 text-lg font-semibold bg-blue-600 hover:bg-blue-700 text-white shadow-lg hover:shadow-xl transition-all"
+                      size="lg"
+                    >
+                      <CreditCard className="mr-2 h-5 w-5" />
+                      Pagar cuota inicial ahora
+                    </Button>
+                    <p className="text-center text-xs text-blue-600/60 mt-2">
+                      Este pago activa tu proceso de matrícula
+                    </p>
+                  </div>
+
+                  {/* 2️⃣ CUOTA MENSUAL - PRIORIDAD MEDIA */}
+                  <div className="bg-gradient-to-br from-emerald-50 to-emerald-100 border-2 border-emerald-200 rounded-xl p-5">
+                    <div className="flex items-center justify-center gap-2 text-emerald-600 mb-2">
+                      <Calendar className="w-5 h-5" />
+                      <span className="text-sm font-medium uppercase tracking-wide">Cuota Mensual</span>
+                    </div>
+                    <p className="text-3xl font-bold text-emerald-600 text-center">
+                      {formatCurrency(resultados.valorPorCuota)}
+                    </p>
+                    <p className="text-sm text-emerald-600/70 text-center mt-2">
+                      📘 Valor mensual según tu plan de financiación ({resultados.cantidadCuotas} cuotas)
+                    </p>
+                    
+                    <div className="mt-3 p-3 bg-white/60 rounded-lg text-xs">
+                      <div className="flex justify-between text-emerald-700/70">
+                        <span>Saldo a financiar</span>
+                        <span>{formatCurrency(resultados.montoFinanciar)}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Valor Total Matrícula */}
+                  <div className="flex items-center justify-between py-3 border-t border-border">
                     <span className="text-muted-foreground">Valor Total Matrícula</span>
                     <span className="font-bold text-lg text-foreground">{formatCurrency(resultados.valorTotal)}</span>
                   </div>
 
-                  {/* Cuota Inicial Base */}
-                  <div className="flex items-center justify-between py-3 border-b border-border">
-                    <div>
-                      <span className="text-muted-foreground">Cuota Inicial</span>
-                      <span className="ml-2 text-xs bg-secondary/20 text-secondary px-2 py-0.5 rounded-full font-medium">
-                        {resultados.porcentajeCuotaInicial}%
-                      </span>
+                  {/* Mensajes de confianza */}
+                  <div className="flex flex-col gap-2 text-xs text-muted-foreground pt-2">
+                    <div className="flex items-center gap-2">
+                      <Shield className="h-4 w-4 text-blue-500" />
+                      <span>Simulación sin compromiso</span>
                     </div>
-                    <span className="font-semibold text-foreground">{formatCurrency(resultados.cuotaInicialBase)}</span>
+                    <div className="flex items-center gap-2">
+                      <CheckCircle2 className="h-4 w-4 text-green-500" />
+                      <span>Valores aproximados, sujetos a validación</span>
+                    </div>
                   </div>
-
-                  {/* Estudio de Crédito */}
-                  <div className="flex items-center justify-between py-2 border-b border-border/50 pl-4">
-                    <span className="text-sm text-muted-foreground">+ Estudio de Crédito</span>
-                    <span className="text-sm font-medium text-foreground">{formatCurrency(resultados.estudioCredito)}</span>
-                  </div>
-
-                  {/* Seguro Estudiantil */}
-                  <div className="flex items-center justify-between py-2 border-b border-border/50 pl-4">
-                    <span className="text-sm text-muted-foreground">+ Seguro Estudiantil</span>
-                    <span className="text-sm font-medium text-foreground">{formatCurrency(resultados.seguroEstudiantil)}</span>
-                  </div>
-
-                  {/* Total Cuota Inicial */}
-                  <div className="flex items-center justify-between py-3 border-b border-border bg-muted/30 rounded-lg px-3 -mx-1">
-                    <span className="font-medium text-foreground">Total a Pagar (Cuota Inicial)</span>
-                    <span className="font-bold text-lg text-secondary">{formatCurrency(resultados.cuotaInicialTotal)}</span>
-                  </div>
-
-                  {/* Monto a Financiar */}
-                  <div className="flex items-center justify-between py-3 border-b border-border">
-                    <span className="text-muted-foreground">Monto a Financiar</span>
-                    <span className="font-bold text-lg text-foreground">{formatCurrency(resultados.montoFinanciar)}</span>
-                  </div>
-
-                  {/* Número de Cuotas */}
-                  <div className="flex items-center justify-between py-3 border-b border-border">
-                    <span className="text-muted-foreground">Número de Cuotas</span>
-                    <span className="font-bold text-lg text-foreground">{resultados.cantidadCuotas} cuotas</span>
-                  </div>
-
-                  {/* Valor por Cuota - Destacado */}
-                  <div className="gradient-primary rounded-xl p-5 mt-4">
-                    <p className="text-primary-foreground/80 text-sm mb-1">Valor de Cada Cuota</p>
-                    <p className="text-3xl font-bold text-primary-foreground">
-                      {formatCurrency(resultados.valorPorCuota)}
-                    </p>
-                  </div>
-
-                  {/* Nota informativa */}
-                  <p className="text-xs text-muted-foreground text-center mt-4 leading-relaxed">
-                    * Esta es una simulación orientativa. Los valores definitivos pueden variar según las condiciones establecidas por CIAF.
-                  </p>
-
                 </div>
               ) : (
                 <div className="flex flex-col items-center justify-center py-12 text-center">
@@ -617,118 +733,122 @@ const CreditSimulator = () => {
         </footer>
       </div>
 
-      {/* Modal de confirmación */}
-      <Dialog open={modalAbierto} onOpenChange={() => {}}>
-        <DialogContent 
-          className="sm:max-w-md max-h-[90vh] overflow-y-auto"
-          onPointerDownOutside={(e) => e.preventDefault()}
-          onEscapeKeyDown={(e) => e.preventDefault()}
-        >
-          {pasoModal === "pregunta" && (
-            <>
-              <DialogHeader>
-                <DialogTitle className="text-center text-xl">
-                  ¿Deseas financiar ya?
-                </DialogTitle>
-              </DialogHeader>
-              <div className="flex gap-3 mt-6">
-                <Button
-                  onClick={handleModalSi}
-                  className="flex-1 h-12 gradient-primary hover:opacity-90 text-primary-foreground font-semibold"
-                >
-                  Sí
-                </Button>
-                <Button
-                  onClick={handleModalNo}
-                  variant="outline"
-                  className="flex-1 h-12 border-input hover:bg-muted font-semibold"
-                >
-                  No
-                </Button>
-              </div>
-            </>
-          )}
-
-          {pasoModal === "pagar" && (
-            <div className="space-y-4">
-              <DialogHeader>
-                <DialogTitle className="flex items-center gap-2 text-secondary">
-                  <Wallet className="w-5 h-5" />
-                  Instrucciones de Pago
-                </DialogTitle>
-              </DialogHeader>
-              
-              <p className="text-sm text-foreground leading-relaxed">
-                Para completar tu financiación, realiza el pago de tu cuota inicial:
-              </p>
-              
-              {/* Código QR */}
-              <div className="bg-muted rounded-lg p-4 flex flex-col items-center">
-                <img 
-                  src={qrDaviplata} 
-                  alt="Código QR Daviplata CIAF" 
-                  className="w-full max-w-[240px] h-auto rounded-lg"
-                />
-              </div>
-
-              <div className="bg-muted rounded-lg p-3 text-center">
-                <p className="text-xs text-muted-foreground mb-1">También puedes pagar con Daviplata</p>
-                <p className="font-bold text-lg text-secondary">@daviciaf</p>
-              </div>
-
-              <div className="bg-muted rounded-lg p-3 space-y-1">
-                <div className="flex items-center gap-2 text-foreground">
-                  <Mail className="w-4 h-4 text-secondary" />
-                  <p className="font-medium text-sm">Envía tu comprobante a:</p>
-                </div>
-                <p className="font-semibold text-secondary">pagos@ciaf.edu.co</p>
-              </div>
-
-              <div className="bg-amber-50 dark:bg-amber-950/30 rounded-lg p-3 border border-amber-200 dark:border-amber-800">
-                <p className="text-sm font-medium text-amber-800 dark:text-amber-200 mb-2">
-                  📌 El asunto del correo debe incluir:
-                </p>
-                <ul className="text-xs text-amber-700 dark:text-amber-300 space-y-1 list-disc list-inside">
-                  <li>Nombre completo</li>
-                  <li>Número de cédula</li>
-                  <li>Programa</li>
-                  <li>Semestre</li>
-                  <li>Descripción del pago</li>
-                </ul>
-              </div>
-
-              <Button
-                onClick={cerrarModal}
-                className="w-full h-10 gradient-primary text-primary-foreground font-semibold"
-              >
-                Entendido
-              </Button>
-            </div>
-          )}
-
-          {pasoModal === "asesora" && (
-            <div className="space-y-4">
-              <DialogHeader>
-                <DialogTitle className="flex items-center gap-2 text-primary">
-                  <MessageCircle className="w-5 h-5" />
-                  Contacta a tu Asesora
-                </DialogTitle>
-              </DialogHeader>
-              
-              <p className="text-foreground text-sm leading-relaxed">
-                Por favor, continúa la conversación con tu asesora. Ella te brindará toda la información que necesitas sobre tu financiación y resolverá tus dudas.
-              </p>
-
-              <Button
-                onClick={cerrarModal}
-                className="w-full h-10 gradient-primary text-primary-foreground font-semibold"
-              >
-                Entendido
-              </Button>
-            </div>
-          )}
+      {/* Pop-up de decisión de financiación */}
+      <Dialog open={financingPromptVisible} onOpenChange={handleFinancingDialogClose}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader className="text-center">
+            <DialogTitle className="text-xl">¿Deseas financiar tu semestre?</DialogTitle>
+            <DialogDescription className="text-muted-foreground">
+              Elige la opción que mejor se adapte a tu situación
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex flex-col gap-3 mt-4">
+            <Button 
+              onClick={handleSelectFinancing}
+              className="h-14 text-base bg-blue-600 hover:bg-blue-700"
+            >
+              <CheckCircle2 className="mr-2 h-5 w-5" />
+              Sí, quiero financiar
+            </Button>
+            <Button 
+              onClick={handleSelectCash}
+              variant="outline"
+              className="h-14 text-base border-gray-300 hover:bg-gray-50"
+            >
+              <Banknote className="mr-2 h-5 w-5" />
+              No, pagaré de contado
+            </Button>
+          </div>
         </DialogContent>
       </Dialog>
+
+      {/* Barra sticky inferior */}
+      <StickyFinancingBar
+        visible={stickyFinancingVisible}
+        onSelectFinancing={handleSelectFinancing}
+        onSelectCash={handleSelectCash}
+      />
+
+      {/* Modal de pago */}
+      <Dialog open={paymentModalOpen} onOpenChange={setPaymentModalOpen}>
+        <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-secondary text-center">
+              <Wallet className="w-5 h-5" />
+              Instrucciones de Pago
+            </DialogTitle>
+          </DialogHeader>
+          
+          <p className="text-sm text-foreground leading-relaxed">
+            Para completar tu financiación, realiza el pago de tu cuota inicial:
+          </p>
+          
+          {/* Código QR */}
+          <div className="bg-muted rounded-lg p-4 flex flex-col items-center">
+            <img 
+              src={qrDaviplata} 
+              alt="Código QR Daviplata CIAF" 
+              className="w-full max-w-[240px] h-auto rounded-lg"
+            />
+          </div>
+
+          {resultados && (
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-center">
+              <p className="text-sm text-blue-600 mb-1">Valor a pagar:</p>
+              <p className="text-2xl font-bold text-blue-700">
+                {formatCurrency(resultados.cuotaInicialTotal)}
+              </p>
+            </div>
+          )}
+
+          <div className="bg-muted rounded-lg p-3 text-center">
+            <p className="text-xs text-muted-foreground mb-1">También puedes pagar con Daviplata</p>
+            <p className="text-lg font-mono font-bold text-foreground">315 578 6696</p>
+            <p className="text-xs text-muted-foreground mt-1">A nombre de: CIAF S.A.S</p>
+          </div>
+
+          <div className="bg-muted rounded-lg p-3">
+            <p className="text-xs text-muted-foreground mb-2 text-center">
+              Después de pagar, envía tu comprobante a:
+            </p>
+            <div className="flex items-center justify-center gap-2">
+              <MessageCircle className="w-5 h-5 text-green-600" />
+              <a 
+                href="https://wa.me/573155786696" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-green-600 font-medium hover:underline"
+              >
+                WhatsApp: 315 578 6696
+              </a>
+            </div>
+            <div className="flex items-center justify-center gap-2 mt-2">
+              <Mail className="w-5 h-5 text-blue-600" />
+              <a 
+                href="mailto:financiacion@ciaf.edu.co"
+                className="text-blue-600 font-medium hover:underline"
+              >
+                financiacion@ciaf.edu.co
+              </a>
+            </div>
+          </div>
+
+          <p className="text-xs text-center text-muted-foreground">
+            Una vez verificado tu pago, recibirás confirmación de tu proceso de matrícula.
+          </p>
+
+          <Button
+            onClick={() => setPaymentModalOpen(false)}
+            variant="outline"
+            className="w-full mt-2"
+          >
+            Cerrar
+          </Button>
+        </DialogContent>
+      </Dialog>
+
+      {/* Espaciador para sticky bar */}
+      {stickyFinancingVisible && <div className="h-32" />}
     </div>
   );
 };
