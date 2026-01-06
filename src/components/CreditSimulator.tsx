@@ -773,76 +773,80 @@ const CreditSimulator = () => {
       <Dialog open={paymentModalOpen} onOpenChange={setPaymentModalOpen}>
         <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-secondary text-center">
+            <DialogTitle className="flex items-center justify-center gap-2 text-blue-700">
               <Wallet className="w-5 h-5" />
-              Instrucciones de Pago
+              Medios de Pago
             </DialogTitle>
           </DialogHeader>
           
-          <p className="text-sm text-foreground leading-relaxed">
-            Para completar tu financiación, realiza el pago de tu cuota inicial:
+          <p className="text-sm text-foreground leading-relaxed text-center">
+            Realiza el pago de tu cuota inicial con cualquiera de estos medios:
           </p>
-          
-          {/* Código QR */}
-          <div className="bg-muted rounded-lg p-4 flex flex-col items-center">
-            <img 
-              src={qrDaviplata} 
-              alt="Código QR Daviplata CIAF" 
-              className="w-full max-w-[240px] h-auto rounded-lg"
-            />
-          </div>
 
           {resultados && (
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-center">
-              <p className="text-sm text-blue-600 mb-1">Valor a pagar:</p>
-              <p className="text-2xl font-bold text-blue-700">
+            <div className="bg-gradient-to-r from-blue-50 to-blue-100 border-2 border-blue-200 rounded-xl p-4 text-center">
+              <p className="text-sm text-blue-600 mb-1">💰 Valor a pagar:</p>
+              <p className="text-3xl font-bold text-blue-700">
                 {formatCurrency(resultados.cuotaInicialTotal)}
               </p>
             </div>
           )}
-
-          <div className="bg-muted rounded-lg p-3 text-center">
-            <p className="text-xs text-muted-foreground mb-1">También puedes pagar con Daviplata</p>
-            <p className="text-lg font-mono font-bold text-foreground">315 578 6696</p>
-            <p className="text-xs text-muted-foreground mt-1">A nombre de: CIAF S.A.S</p>
+          
+          {/* Código QR */}
+          <div className="bg-white border-2 border-gray-100 rounded-xl p-4 flex flex-col items-center shadow-sm">
+            <p className="text-sm font-medium text-gray-700 mb-3">📱 Escanea el código QR</p>
+            <img 
+              src={qrDaviplata} 
+              alt="Código QR Daviplata CIAF" 
+              className="w-full max-w-[200px] h-auto rounded-lg"
+            />
           </div>
 
-          <div className="bg-muted rounded-lg p-3">
-            <p className="text-xs text-muted-foreground mb-2 text-center">
-              Después de pagar, envía tu comprobante a:
+          {/* Llave de pago Daviplata */}
+          <div className="bg-gradient-to-r from-red-50 to-orange-50 border border-red-200 rounded-xl p-4 text-center">
+            <p className="text-xs text-red-600 mb-1 font-medium">💳 Llave Daviplata</p>
+            <p className="text-2xl font-mono font-bold text-red-600">@daviciaf</p>
+            <p className="text-xs text-muted-foreground mt-1">Pago directo sin escanear</p>
+          </div>
+
+          {/* Información de contacto */}
+          <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-xl p-4 space-y-3">
+            <p className="text-xs text-green-700 font-medium text-center mb-2">
+              📲 Envía tu soporte de pago para continuar con tu proceso
             </p>
-            <div className="flex items-center justify-center gap-2">
-              <MessageCircle className="w-5 h-5 text-green-600" />
+            
+            <div className="flex items-center justify-center gap-3 bg-white/60 rounded-lg p-2">
+              <MessageCircle className="w-5 h-5 text-green-600 flex-shrink-0" />
               <a 
-                href="https://wa.me/573155786696" 
+                href="https://wa.me/573126814341" 
                 target="_blank" 
                 rel="noopener noreferrer"
-                className="text-green-600 font-medium hover:underline"
+                className="text-green-700 font-semibold hover:underline"
               >
-                WhatsApp: 315 578 6696
+                WhatsApp: 312 681 4341
               </a>
             </div>
-            <div className="flex items-center justify-center gap-2 mt-2">
-              <Mail className="w-5 h-5 text-blue-600" />
+            
+            <div className="flex items-center justify-center gap-3 bg-white/60 rounded-lg p-2">
+              <Mail className="w-5 h-5 text-blue-600 flex-shrink-0" />
               <a 
-                href="mailto:financiacion@ciaf.edu.co"
-                className="text-blue-600 font-medium hover:underline"
+                href="mailto:pagos@ciaf.edu.co"
+                className="text-blue-700 font-semibold hover:underline"
               >
-                financiacion@ciaf.edu.co
+                ✉️ pagos@ciaf.edu.co
               </a>
             </div>
           </div>
 
-          <p className="text-xs text-center text-muted-foreground">
-            Una vez verificado tu pago, recibirás confirmación de tu proceso de matrícula.
+          <p className="text-xs text-center text-muted-foreground bg-gray-50 rounded-lg p-3">
+            ✅ Una vez verificado tu pago, recibirás confirmación de tu proceso de matrícula.
           </p>
 
           <Button
             onClick={() => setPaymentModalOpen(false)}
-            variant="outline"
-            className="w-full mt-2"
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white"
           >
-            Cerrar
+            Entendido
           </Button>
         </DialogContent>
       </Dialog>
