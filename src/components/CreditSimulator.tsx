@@ -33,8 +33,13 @@ import {
   Calendar, 
   Shield,
   Key,
-  FileText
+  FileText,
+  QrCode,
+  Percent,
+  Clock,
+  ArrowRight
 } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import { toast } from "sonner";
 
 // Mapa de precios de matrícula por programa y semestre (Matrícula Ordinaria 2026)
@@ -147,6 +152,15 @@ interface ResultadosSimulacion {
   valorPorCuota: number;
 }
 
+interface InfoCardProps {
+  icon: LucideIcon;
+  label: string;
+  value: string;
+  description: string;
+  priority?: "high" | "medium" | "normal";
+  children?: React.ReactNode;
+}
+
 // Componente: Caja de Información Profesional
 const InfoCard = ({ 
   icon: Icon, 
@@ -155,14 +169,7 @@ const InfoCard = ({
   description, 
   priority = "normal",
   children 
-}: { 
-  icon: React.ElementType;
-  label: string;
-  value: string;
-  description: string;
-  priority?: "high" | "medium" | "normal";
-  children?: React.ReactNode;
-}) => {
+}: InfoCardProps) => {
   const priorityStyles = {
     high: "bg-ciaf-blue-light border-ciaf-blue",
     medium: "bg-ciaf-blue-light border-ciaf-blue/60",
@@ -193,6 +200,126 @@ const InfoCard = ({
         {description}
       </p>
       {children}
+    </div>
+  );
+};
+
+// Componente: Caja de Pago de Contado
+const CashPaymentBox = ({ 
+  valorMatricula,
+  onClose 
+}: { 
+  valorMatricula: number;
+  onClose: () => void;
+}) => {
+  const valorConDescuento = Math.round(valorMatricula * 0.90);
+  const ahorro = valorMatricula - valorConDescuento;
+
+  return (
+    <div className="bg-ciaf-blue-light border-2 border-ciaf-blue rounded-xl p-5 sm:p-6 animate-scale-in">
+      {/* Header con botón cerrar */}
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-2 text-ciaf-blue">
+          <Percent className="w-5 h-5" strokeWidth={2} />
+          <span className="text-sm font-semibold uppercase tracking-wide">Pago de Contado</span>
+        </div>
+        <button 
+          onClick={onClose}
+          className="text-ciaf-blue/50 hover:text-ciaf-blue transition-colors p-1"
+          aria-label="Volver a financiación"
+        >
+          <ArrowRight className="w-4 h-4" />
+        </button>
+      </div>
+
+      {/* Mensaje principal */}
+      <div className="bg-white/80 rounded-lg p-3 mb-4 border border-ciaf-blue/10">
+        <div className="flex items-center gap-2 text-ciaf-blue font-semibold text-sm mb-1">
+          <CheckCircle2 className="w-4 h-4" />
+          ¡Excelente! El pago de contado aplica solo hasta el 15 de enero.
+        </div>
+        <p className="text-xs text-ciaf-blue/70">
+          El valor de contado corresponde a la matrícula menos el 10% de descuento.
+        </p>
+      </div>
+
+      {/* Valor con descuento */}
+      <div className="text-center mb-4">
+        <p className="text-xs text-ciaf-blue/70 mb-1 flex items-center justify-center gap-1">
+          <Wallet className="w-3 h-3" />
+          Valor a pagar con descuento
+        </p>
+        <p className="text-[32px] sm:text-[36px] font-bold text-ciaf-blue">
+          {formatCurrency(valorConDescuento)}
+        </p>
+        <p className="text-xs text-ciaf-blue/60 mt-1">
+          Ahorras {formatCurrency(ahorro)} (10% de descuento)
+        </p>
+      </div>
+
+      {/* Fecha límite */}
+      <div className="flex items-center justify-center gap-2 bg-white/60 rounded-lg p-2 mb-4 border border-ciaf-blue/10">
+        <Clock className="w-4 h-4 text-ciaf-blue" />
+        <span className="text-sm text-ciaf-blue font-medium">Válido hasta: 15 de enero de 2026</span>
+      </div>
+
+      {/* Medios de pago */}
+      <div className="space-y-3">
+        <p className="text-xs text-ciaf-blue font-semibold text-center uppercase tracking-wide">
+          Medios de Pago
+        </p>
+
+        {/* QR y Llave */}
+        <div className="grid grid-cols-2 gap-3">
+          {/* QR Code */}
+          <div className="bg-white rounded-lg p-3 border border-border flex flex-col items-center">
+            <div className="flex items-center gap-1 text-xs text-ciaf-blue font-medium mb-2">
+              <QrCode className="w-3 h-3" />
+              Código QR
+            </div>
+            <img 
+              src={qrDaviplata} 
+              alt="Código QR Daviplata CIAF" 
+              className="w-full max-w-[100px] h-auto rounded"
+            />
+          </div>
+
+          {/* Llave Daviplata */}
+          <div className="bg-white rounded-lg p-3 border border-border flex flex-col items-center justify-center">
+            <div className="flex items-center gap-1 text-xs text-ciaf-blue font-medium mb-2">
+              <Key className="w-3 h-3" />
+              Llave Daviplata
+            </div>
+            <p className="text-lg font-mono font-bold text-ciaf-blue">@daviciaf</p>
+            <p className="text-[10px] text-muted-foreground mt-1">Pago directo</p>
+          </div>
+        </div>
+
+        {/* Contacto */}
+        <div className="bg-white rounded-lg p-3 border border-border space-y-2">
+          <a 
+            href="https://wa.me/573126814341" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="flex items-center justify-center gap-2 text-ciaf-blue font-medium hover:underline transition-all text-sm"
+          >
+            <MessageCircle className="w-4 h-4" />
+            WhatsApp: 312 681 4341
+          </a>
+          <a 
+            href="mailto:pagos@ciaf.edu.co"
+            className="flex items-center justify-center gap-2 text-ciaf-blue font-medium hover:underline transition-all text-sm"
+          >
+            <Mail className="w-4 h-4" />
+            pagos@ciaf.edu.co
+          </a>
+        </div>
+
+        {/* Instrucción final */}
+        <p className="text-xs text-center text-ciaf-blue/70 bg-white/60 rounded-lg p-2 border border-ciaf-blue/10">
+          Para confirmar tu pago, utiliza cualquiera de nuestros medios y envía tu comprobante a <strong>pagos@ciaf.edu.co</strong>
+        </p>
+      </div>
     </div>
   );
 };
@@ -256,6 +383,7 @@ const CreditSimulator = () => {
   const [financingDismissed, setFinancingDismissed] = useState(false);
   const [stickyFinancingVisible, setStickyFinancingVisible] = useState(false);
   const [paymentModalOpen, setPaymentModalOpen] = useState(false);
+  const [showCashPayment, setShowCashPayment] = useState(false);
   
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const popupTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -402,6 +530,7 @@ const CreditSimulator = () => {
     setFinancingPromptVisible(false);
     setStickyFinancingVisible(false);
     setPaymentModalOpen(false);
+    setShowCashPayment(false);
     if (timerRef.current) clearTimeout(timerRef.current);
     if (popupTimerRef.current) clearTimeout(popupTimerRef.current);
   };
@@ -417,6 +546,7 @@ const CreditSimulator = () => {
     setFinancingPromptVisible(false);
     setStickyFinancingVisible(false);
     setFinancingDismissed(true);
+    setShowCashPayment(false);
     localStorage.setItem(FINANCING_DECISION_KEY, "yes");
     setPaymentModalOpen(true);
   };
@@ -425,8 +555,14 @@ const CreditSimulator = () => {
     setFinancingPromptVisible(false);
     setStickyFinancingVisible(false);
     setFinancingDismissed(true);
+    setShowCashPayment(true);
     localStorage.setItem(FINANCING_DECISION_KEY, "no");
-    toast.info("Perfecto, puedes pagar de contado cuando desees");
+  };
+
+  const handleCloseCashPayment = () => {
+    setShowCashPayment(false);
+    setFinancingDismissed(false);
+    localStorage.removeItem(FINANCING_DECISION_KEY);
   };
 
   const handlePayInitialQuota = () => {
@@ -745,6 +881,14 @@ const CreditSimulator = () => {
                     </span>
                     <span className="font-bold text-lg text-foreground">{formatCurrency(resultados.valorTotal)}</span>
                   </div>
+
+                  {/* 3️⃣ CAJA DE PAGO DE CONTADO */}
+                  {showCashPayment && (
+                    <CashPaymentBox 
+                      valorMatricula={resultados.valorTotal}
+                      onClose={handleCloseCashPayment}
+                    />
+                  )}
 
                   {/* Mensajes de confianza */}
                   <div className="flex flex-col gap-2 text-xs text-muted-foreground pt-2">
