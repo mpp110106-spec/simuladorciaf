@@ -19,7 +19,22 @@ import {
 } from "@/components/ui/dialog";
 import logoCiaf from "@/assets/logo-ciaf-azul.png";
 import qrDaviplata from "@/assets/qr-daviplata-ciaf.png";
-import { Calculator, BookOpen, DollarSign, CreditCard, CheckCircle2, GraduationCap, MessageCircle, Wallet, Mail, Banknote, Calendar, Shield, X } from "lucide-react";
+import { 
+  Calculator, 
+  BookOpen, 
+  DollarSign, 
+  CreditCard, 
+  CheckCircle2, 
+  GraduationCap, 
+  MessageCircle, 
+  Wallet, 
+  Mail, 
+  Banknote, 
+  Calendar, 
+  Shield,
+  Key,
+  FileText
+} from "lucide-react";
 import { toast } from "sonner";
 
 // Mapa de precios de matrícula por programa y semestre (Matrícula Ordinaria 2026)
@@ -83,16 +98,13 @@ const PRECIOS_MATRICULA: Record<string, Record<number, number>> = {
   }
 };
 
-// Lista completa de programas académicos CIAF (ordenados alfabéticamente)
 const PROGRAMAS_ACADEMICOS = Object.keys(PRECIOS_MATRICULA).sort();
 
-// Obtener semestres disponibles para un programa
 const getSemestresDisponibles = (programa: string): number[] => {
   if (!programa || !PRECIOS_MATRICULA[programa]) return [];
   return Object.keys(PRECIOS_MATRICULA[programa]).map(Number).sort((a, b) => a - b);
 };
 
-// Obtener precio de matrícula
 const getPrecioMatricula = (programa: string, semestre: number): number | null => {
   if (!programa || !PRECIOS_MATRICULA[programa]) return null;
   return PRECIOS_MATRICULA[programa][semestre] || null;
@@ -101,15 +113,12 @@ const getPrecioMatricula = (programa: string, semestre: number): number | null =
 const PORCENTAJES_CUOTA_INICIAL = [20, 30, 40, 50];
 const OPCIONES_CUOTAS = [4, 5, 6];
 
-// Costos fijos adicionales incluidos en la cuota inicial
 const ESTUDIO_CREDITO = 48000;
 const SEGURO_ESTUDIANTIL = 14860;
 
-// Constantes para el flujo de financiación
-const POPUP_TIMEOUT = 10000; // 10 segundos
+const POPUP_TIMEOUT = 10000;
 const FINANCING_DECISION_KEY = "ciaf_financing_decision";
 
-// Formatear moneda colombiana
 const formatCurrency = (value: number): string => {
   return new Intl.NumberFormat("es-CO", {
     style: "currency",
@@ -119,7 +128,6 @@ const formatCurrency = (value: number): string => {
   }).format(Math.round(value));
 };
 
-// Parsear valor de entrada
 const parseInputValue = (value: string): number => {
   const cleaned = value.replace(/[^\d]/g, "");
   return parseInt(cleaned, 10) || 0;
@@ -139,6 +147,56 @@ interface ResultadosSimulacion {
   valorPorCuota: number;
 }
 
+// Componente: Caja de Información Profesional
+const InfoCard = ({ 
+  icon: Icon, 
+  label, 
+  value, 
+  description, 
+  priority = "normal",
+  children 
+}: { 
+  icon: React.ElementType;
+  label: string;
+  value: string;
+  description: string;
+  priority?: "high" | "medium" | "normal";
+  children?: React.ReactNode;
+}) => {
+  const priorityStyles = {
+    high: "bg-ciaf-blue-light border-ciaf-blue",
+    medium: "bg-ciaf-blue-light border-ciaf-blue/60",
+    normal: "bg-muted/30 border-border"
+  };
+
+  const valueStyles = {
+    high: "text-[28px] sm:text-[32px]",
+    medium: "text-[24px] sm:text-[28px]",
+    normal: "text-xl"
+  };
+
+  return (
+    <div className={`
+      rounded-xl border-2 p-5 sm:p-6 transition-all duration-200
+      hover:shadow-lg hover:-translate-y-0.5
+      ${priorityStyles[priority]}
+    `}>
+      <div className="flex items-center justify-center gap-2 text-ciaf-blue mb-3">
+        <Icon className="w-5 h-5" strokeWidth={2} />
+        <span className="text-sm font-semibold uppercase tracking-wide">{label}</span>
+      </div>
+      <p className={`font-bold text-ciaf-blue text-center ${valueStyles[priority]}`}>
+        {value}
+      </p>
+      <p className="text-sm text-ciaf-blue/70 text-center mt-2 flex items-center justify-center gap-2">
+        <FileText className="w-4 h-4" />
+        {description}
+      </p>
+      {children}
+    </div>
+  );
+};
+
 // Componente: Barra Sticky Inferior
 const StickyFinancingBar = ({ 
   visible,
@@ -153,18 +211,18 @@ const StickyFinancingBar = ({
 
   return (
     <div 
-      className="fixed bottom-0 left-0 right-0 bg-white border-t z-50 animate-in slide-in-from-bottom duration-300"
-      style={{ boxShadow: "0 -4px 20px rgba(0, 0, 0, 0.1)" }}
+      className="fixed bottom-0 left-0 right-0 bg-white border-t border-border z-50 animate-in slide-in-from-bottom duration-300"
+      style={{ boxShadow: "0 -4px 20px rgba(0, 0, 0, 0.08)" }}
     >
       <div className="max-w-2xl mx-auto px-4 py-4">
         <p className="text-center text-sm text-muted-foreground mb-2">
           Aún puedes elegir tu forma de pago
         </p>
-        <p className="text-center font-medium mb-3">¿Deseas financiar?</p>
+        <p className="text-center font-medium text-foreground mb-3">¿Deseas financiar?</p>
         <div className="flex gap-3">
           <Button 
             onClick={onSelectFinancing}
-            className="flex-1 h-12 bg-blue-600 hover:bg-blue-700 text-white"
+            className="flex-1 h-12 bg-ciaf-blue hover:bg-ciaf-blue-hover text-white transition-all hover:shadow-md"
           >
             <CheckCircle2 className="w-4 h-4 mr-2" />
             Sí, quiero financiar
@@ -172,7 +230,7 @@ const StickyFinancingBar = ({
           <Button 
             onClick={onSelectCash}
             variant="outline"
-            className="flex-1 h-12 border-gray-300"
+            className="flex-1 h-12 border-border hover:bg-muted/50 transition-all"
           >
             <Banknote className="w-4 h-4 mr-2" />
             No, pagaré de contado
@@ -194,7 +252,6 @@ const CreditSimulator = () => {
   const [resultados, setResultados] = useState<ResultadosSimulacion | null>(null);
   const [mostrarResultados, setMostrarResultados] = useState(false);
   
-  // Estados del flujo de financiación
   const [financingPromptVisible, setFinancingPromptVisible] = useState(false);
   const [financingDismissed, setFinancingDismissed] = useState(false);
   const [stickyFinancingVisible, setStickyFinancingVisible] = useState(false);
@@ -203,7 +260,6 @@ const CreditSimulator = () => {
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const popupTimerRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Cargar decisión guardada de localStorage
   useEffect(() => {
     const savedDecision = localStorage.getItem(FINANCING_DECISION_KEY);
     if (savedDecision === "no") {
@@ -211,7 +267,6 @@ const CreditSimulator = () => {
     }
   }, []);
 
-  // Timer para mostrar el pop-up después de calcular
   useEffect(() => {
     if (mostrarResultados && resultados && !financingDismissed && !financingPromptVisible && !stickyFinancingVisible) {
       timerRef.current = setTimeout(() => {
@@ -226,7 +281,6 @@ const CreditSimulator = () => {
     };
   }, [mostrarResultados, resultados, financingDismissed, financingPromptVisible, stickyFinancingVisible]);
 
-  // Auto-cerrar pop-up y mostrar sticky después de 10 segundos
   useEffect(() => {
     if (financingPromptVisible) {
       popupTimerRef.current = setTimeout(() => {
@@ -242,10 +296,8 @@ const CreditSimulator = () => {
     };
   }, [financingPromptVisible]);
 
-  // Semestres disponibles para el programa seleccionado
   const semestresDisponibles = useMemo(() => getSemestresDisponibles(programa), [programa]);
 
-  // Auto-llenar precio cuando cambia programa o semestre
   const handleProgramaChange = (nuevoPrograma: string) => {
     setPrograma(nuevoPrograma);
     setSemestre("");
@@ -260,7 +312,6 @@ const CreditSimulator = () => {
     }
   };
 
-  // Calcular porcentaje real de cuota inicial
   const porcentajeReal = useMemo(() => {
     const total = parseInputValue(valorTotal);
     if (total === 0) return 0;
@@ -273,7 +324,6 @@ const CreditSimulator = () => {
     }
   }, [valorTotal, tipoCuotaInicial, porcentajeCuotaInicial, montoCuotaInicial]);
 
-  // Validar formulario
   const validarFormulario = useCallback((): boolean => {
     if (!programa) {
       toast.error("Por favor seleccione un programa académico");
@@ -299,7 +349,6 @@ const CreditSimulator = () => {
     return true;
   }, [programa, semestre, valorTotal, porcentajeReal]);
 
-  // Calcular simulación
   const calcularSimulacion = useCallback(() => {
     if (!validarFormulario()) return;
 
@@ -313,11 +362,9 @@ const CreditSimulator = () => {
       cuotaInicialBase = parseInputValue(montoCuotaInicial);
     }
 
-    // Seguro estudiantil solo aplica para semestres impares (1, 3, 5, 7, 9)
     const esSestreImpar = semestreNum % 2 !== 0;
     const seguroAplicable = esSestreImpar ? SEGURO_ESTUDIANTIL : 0;
 
-    // Cuota inicial total = base + estudio de crédito + seguro estudiantil (si aplica)
     const cuotaInicialTotal = cuotaInicialBase + ESTUDIO_CREDITO + seguroAplicable;
     const montoFinanciar = total - cuotaInicialBase;
     const numCuotas = parseInt(cantidadCuotas, 10);
@@ -342,7 +389,6 @@ const CreditSimulator = () => {
     toast.success("Simulación calculada correctamente");
   }, [programa, semestre, valorTotal, tipoCuotaInicial, porcentajeCuotaInicial, montoCuotaInicial, cantidadCuotas, porcentajeReal, validarFormulario]);
 
-  // Limpiar formulario
   const limpiarFormulario = () => {
     setPrograma("");
     setSemestre("");
@@ -356,15 +402,10 @@ const CreditSimulator = () => {
     setFinancingPromptVisible(false);
     setStickyFinancingVisible(false);
     setPaymentModalOpen(false);
-    if (timerRef.current) {
-      clearTimeout(timerRef.current);
-    }
-    if (popupTimerRef.current) {
-      clearTimeout(popupTimerRef.current);
-    }
+    if (timerRef.current) clearTimeout(timerRef.current);
+    if (popupTimerRef.current) clearTimeout(popupTimerRef.current);
   };
 
-  // Handlers del flujo de financiación
   const handleFinancingDialogClose = (open: boolean) => {
     if (!open) {
       setFinancingPromptVisible(false);
@@ -377,7 +418,6 @@ const CreditSimulator = () => {
     setStickyFinancingVisible(false);
     setFinancingDismissed(true);
     localStorage.setItem(FINANCING_DECISION_KEY, "yes");
-    // Abrir modal de pago
     setPaymentModalOpen(true);
   };
 
@@ -404,9 +444,9 @@ const CreditSimulator = () => {
               alt="Logo CIAF - Centro de Instrucción y Aprendizaje Financiero" 
               className="h-16 sm:h-20 w-auto object-contain"
             />
-            <div className="h-1 w-24 gradient-primary rounded-full" />
+            <div className="h-1 w-24 bg-ciaf-blue rounded-full" />
           </div>
-          <h1 className="text-3xl sm:text-4xl font-bold text-primary mb-3">
+          <h1 className="text-3xl sm:text-4xl font-bold text-ciaf-blue mb-3">
             Simulador de Créditos
           </h1>
           <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
@@ -416,10 +456,10 @@ const CreditSimulator = () => {
 
         <div className="grid gap-8 lg:grid-cols-2">
           {/* Formulario */}
-          <Card className="shadow-card border-0 animate-slide-up" style={{ animationDelay: "0.1s" }}>
+          <Card className="shadow-lg border border-border/50 animate-slide-up bg-card" style={{ animationDelay: "0.1s" }}>
             <CardHeader className="pb-4">
-              <CardTitle className="flex items-center gap-3 text-xl text-primary">
-                <Calculator className="w-5 h-5 text-secondary" />
+              <CardTitle className="flex items-center gap-3 text-xl text-ciaf-blue">
+                <Calculator className="w-5 h-5" strokeWidth={2} />
                 Información del Crédito
               </CardTitle>
             </CardHeader>
@@ -427,11 +467,11 @@ const CreditSimulator = () => {
               {/* Programa Académico */}
               <div className="space-y-2">
                 <Label htmlFor="programa" className="flex items-center gap-2 text-foreground font-medium">
-                  <BookOpen className="w-4 h-4 text-secondary" />
+                  <BookOpen className="w-4 h-4 text-ciaf-blue" strokeWidth={2} />
                   Programa Académico
                 </Label>
                 <Select value={programa} onValueChange={handleProgramaChange}>
-                  <SelectTrigger id="programa" className="h-12 bg-card border-input hover:border-secondary transition-colors">
+                  <SelectTrigger id="programa" className="h-12 bg-card border-input hover:border-ciaf-blue transition-colors">
                     <SelectValue placeholder="Seleccione su programa" />
                   </SelectTrigger>
                   <SelectContent className="max-h-80 bg-popover border-border z-50">
@@ -447,7 +487,7 @@ const CreditSimulator = () => {
               {/* Semestre */}
               <div className="space-y-2">
                 <Label htmlFor="semestre" className="flex items-center gap-2 text-foreground font-medium">
-                  <GraduationCap className="w-4 h-4 text-secondary" />
+                  <GraduationCap className="w-4 h-4 text-ciaf-blue" strokeWidth={2} />
                   Semestre
                 </Label>
                 <Select 
@@ -455,7 +495,7 @@ const CreditSimulator = () => {
                   onValueChange={handleSemestreChange}
                   disabled={!programa}
                 >
-                  <SelectTrigger id="semestre" className="h-12 bg-card border-input hover:border-secondary transition-colors">
+                  <SelectTrigger id="semestre" className="h-12 bg-card border-input hover:border-ciaf-blue transition-colors">
                     <SelectValue placeholder={programa ? "Seleccione el semestre" : "Primero seleccione un programa"} />
                   </SelectTrigger>
                   <SelectContent className="bg-popover border-border z-50">
@@ -471,7 +511,7 @@ const CreditSimulator = () => {
               {/* Valor Total */}
               <div className="space-y-2">
                 <Label htmlFor="valorTotal" className="flex items-center gap-2 text-foreground font-medium">
-                  <DollarSign className="w-4 h-4 text-secondary" />
+                  <DollarSign className="w-4 h-4 text-ciaf-blue" strokeWidth={2} />
                   Valor Total de la Matrícula
                 </Label>
                 <div className="relative">
@@ -483,7 +523,7 @@ const CreditSimulator = () => {
                     placeholder="0"
                     value={valorTotal ? formatCurrency(parseInputValue(valorTotal)).replace("$", "").trim() : ""}
                     onChange={(e) => setValorTotal(e.target.value)}
-                    className="h-12 pl-8 bg-card border-input hover:border-secondary focus:border-secondary transition-colors text-lg"
+                    className="h-12 pl-8 bg-card border-input hover:border-ciaf-blue focus:border-ciaf-blue transition-colors text-lg"
                   />
                 </div>
               </div>
@@ -491,18 +531,17 @@ const CreditSimulator = () => {
               {/* Cuota Inicial */}
               <div className="space-y-3">
                 <Label className="flex items-center gap-2 text-foreground font-medium">
-                  <CreditCard className="w-4 h-4 text-secondary" />
+                  <CreditCard className="w-4 h-4 text-ciaf-blue" strokeWidth={2} />
                   Cuota Inicial
                 </Label>
                 
-                {/* Toggle entre porcentaje y monto */}
                 <div className="flex rounded-lg border border-input overflow-hidden">
                   <button
                     type="button"
                     onClick={() => setTipoCuotaInicial("porcentaje")}
                     className={`flex-1 py-3 px-4 text-sm font-medium transition-all ${
                       tipoCuotaInicial === "porcentaje"
-                        ? "bg-primary text-primary-foreground"
+                        ? "bg-ciaf-blue text-white"
                         : "bg-card text-muted-foreground hover:bg-muted"
                     }`}
                   >
@@ -513,7 +552,7 @@ const CreditSimulator = () => {
                     onClick={() => setTipoCuotaInicial("monto")}
                     className={`flex-1 py-3 px-4 text-sm font-medium transition-all ${
                       tipoCuotaInicial === "monto"
-                        ? "bg-primary text-primary-foreground"
+                        ? "bg-ciaf-blue text-white"
                         : "bg-card text-muted-foreground hover:bg-muted"
                     }`}
                   >
@@ -530,8 +569,8 @@ const CreditSimulator = () => {
                         onClick={() => setPorcentajeCuotaInicial(pct.toString())}
                         className={`py-3 rounded-lg font-semibold text-sm transition-all ${
                           porcentajeCuotaInicial === pct.toString()
-                            ? "bg-secondary text-secondary-foreground shadow-soft"
-                            : "bg-muted text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                            ? "bg-ciaf-blue text-white shadow-md"
+                            : "bg-muted text-muted-foreground hover:bg-ciaf-blue-light hover:text-ciaf-blue"
                         }`}
                       >
                         {pct}%
@@ -547,15 +586,15 @@ const CreditSimulator = () => {
                       placeholder="Ingrese el monto"
                       value={montoCuotaInicial ? formatCurrency(parseInputValue(montoCuotaInicial)).replace("$", "").trim() : ""}
                       onChange={(e) => setMontoCuotaInicial(e.target.value)}
-                      className="h-12 pl-8 bg-card border-input hover:border-secondary focus:border-secondary transition-colors"
+                      className="h-12 pl-8 bg-card border-input hover:border-ciaf-blue focus:border-ciaf-blue transition-colors"
                     />
                   </div>
                 )}
 
-                {/* Indicador de porcentaje mínimo */}
                 {porcentajeReal > 0 && porcentajeReal < 20 && (
-                  <p className="text-sm text-destructive font-medium">
-                    ⚠️ La cuota inicial debe ser mínimo el 20%
+                  <p className="text-sm text-destructive font-medium flex items-center gap-2">
+                    <Shield className="w-4 h-4" />
+                    La cuota inicial debe ser mínimo el 20%
                   </p>
                 )}
               </div>
@@ -563,7 +602,7 @@ const CreditSimulator = () => {
               {/* Cantidad de Cuotas */}
               <div className="space-y-3">
                 <Label className="flex items-center gap-2 text-foreground font-medium">
-                  <CreditCard className="w-4 h-4 text-secondary" />
+                  <Calendar className="w-4 h-4 text-ciaf-blue" strokeWidth={2} />
                   Número de Cuotas
                 </Label>
                 <div className="grid grid-cols-3 gap-2">
@@ -574,8 +613,8 @@ const CreditSimulator = () => {
                       onClick={() => setCantidadCuotas(num.toString())}
                       className={`py-3 rounded-lg font-semibold transition-all ${
                         cantidadCuotas === num.toString()
-                          ? "bg-secondary text-secondary-foreground shadow-soft"
-                          : "bg-muted text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                          ? "bg-ciaf-blue text-white shadow-md"
+                          : "bg-muted text-muted-foreground hover:bg-ciaf-blue-light hover:text-ciaf-blue"
                       }`}
                     >
                       {num} cuotas
@@ -597,7 +636,7 @@ const CreditSimulator = () => {
                 <Button
                   type="button"
                   onClick={calcularSimulacion}
-                  className="flex-1 h-12 gradient-primary hover:opacity-90 transition-all shadow-soft hover:shadow-hover text-primary-foreground font-semibold"
+                  className="flex-1 h-12 bg-ciaf-blue hover:bg-ciaf-blue-hover transition-all shadow-md hover:shadow-lg text-white font-semibold"
                 >
                   <Calculator className="w-4 h-4 mr-2" />
                   Calcular
@@ -606,118 +645,126 @@ const CreditSimulator = () => {
             </CardContent>
           </Card>
 
-          {/* Resultados con nueva jerarquía */}
+          {/* Resultados */}
           <Card 
-            className={`shadow-card border-0 transition-all duration-500 ${
+            className={`shadow-lg border border-border/50 transition-all duration-500 bg-card ${
               mostrarResultados ? "opacity-100 animate-scale-in" : "opacity-50"
             }`}
             style={{ animationDelay: "0.2s" }}
           >
             <CardHeader className="pb-4">
-              <CardTitle className="flex items-center gap-3 text-xl text-primary">
-                <CheckCircle2 className="w-5 h-5 text-secondary" />
+              <CardTitle className="flex items-center gap-3 text-xl text-ciaf-blue">
+                <CheckCircle2 className="w-5 h-5" strokeWidth={2} />
                 Resumen del Crédito
               </CardTitle>
             </CardHeader>
             <CardContent>
               {resultados ? (
-                <div className="space-y-4">
+                <div className="space-y-5">
                   {/* Programa y Semestre */}
-                  <div className="bg-muted/50 rounded-xl p-4">
-                    <p className="text-sm text-muted-foreground mb-1">Programa</p>
+                  <div className="bg-muted/30 rounded-xl p-4 border border-border/50">
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
+                      <FileText className="w-4 h-4" />
+                      Programa
+                    </div>
                     <p className="font-semibold text-foreground leading-tight">{resultados.programa}</p>
-                    <p className="text-sm text-secondary mt-2">Semestre {resultados.semestre}</p>
+                    <p className="text-sm text-ciaf-blue mt-2 font-medium">Semestre {resultados.semestre}</p>
                   </div>
 
                   {/* 1️⃣ CUOTA INICIAL - PRIORIDAD ALTA */}
-                  <div className="bg-gradient-to-br from-blue-50 to-blue-100 border-2 border-blue-200 rounded-xl p-5">
-                    <div className="flex items-center justify-center gap-2 text-blue-600 mb-2">
-                      <Banknote className="w-5 h-5" />
-                      <span className="text-sm font-medium uppercase tracking-wide">Cuota Inicial</span>
-                    </div>
-                    <p className="text-4xl font-bold text-blue-600 text-center">
-                      {formatCurrency(resultados.cuotaInicialTotal)}
-                    </p>
-                    <p className="text-sm text-blue-600/70 text-center mt-2">
-                      💳 Pago único para iniciar tu semestre
-                    </p>
-                    
+                  <InfoCard
+                    icon={Banknote}
+                    label="Cuota Inicial"
+                    value={formatCurrency(resultados.cuotaInicialTotal)}
+                    description="Pago único para iniciar tu semestre"
+                    priority="high"
+                  >
                     {/* Desglose cuota inicial */}
-                    <div className="mt-4 p-3 bg-white/60 rounded-lg text-xs space-y-1">
-                      <div className="flex justify-between text-blue-700/70">
-                        <span>Abono matrícula ({resultados.porcentajeCuotaInicial}%)</span>
-                        <span>{formatCurrency(resultados.cuotaInicialBase)}</span>
+                    <div className="mt-4 p-3 bg-white/80 rounded-lg text-xs space-y-1.5 border border-ciaf-blue/10">
+                      <div className="flex justify-between text-ciaf-blue/70">
+                        <span className="flex items-center gap-1">
+                          <DollarSign className="w-3 h-3" />
+                          Abono matrícula ({resultados.porcentajeCuotaInicial}%)
+                        </span>
+                        <span className="font-medium">{formatCurrency(resultados.cuotaInicialBase)}</span>
                       </div>
-                      <div className="flex justify-between text-blue-700/70">
-                        <span>Estudio de crédito</span>
-                        <span>{formatCurrency(resultados.estudioCredito)}</span>
+                      <div className="flex justify-between text-ciaf-blue/70">
+                        <span className="flex items-center gap-1">
+                          <FileText className="w-3 h-3" />
+                          Estudio de crédito
+                        </span>
+                        <span className="font-medium">{formatCurrency(resultados.estudioCredito)}</span>
                       </div>
-                      <div className="flex justify-between text-blue-700/70">
-                        <span>Seguro estudiantil</span>
-                        <span>{formatCurrency(resultados.seguroEstudiantil)}</span>
+                      <div className="flex justify-between text-ciaf-blue/70">
+                        <span className="flex items-center gap-1">
+                          <Shield className="w-3 h-3" />
+                          Seguro estudiantil
+                        </span>
+                        <span className="font-medium">{formatCurrency(resultados.seguroEstudiantil)}</span>
                       </div>
                     </div>
 
-                    {/* Botón pagar cuota inicial - AZUL */}
+                    {/* Botón pagar cuota inicial */}
                     <Button 
                       onClick={handlePayInitialQuota}
-                      className="w-full h-14 mt-4 text-lg font-semibold bg-blue-600 hover:bg-blue-700 text-white shadow-lg hover:shadow-xl transition-all"
+                      className="w-full h-14 mt-4 text-lg font-semibold bg-ciaf-blue hover:bg-ciaf-blue-hover text-white shadow-lg hover:shadow-xl transition-all"
                       size="lg"
                     >
                       <CreditCard className="mr-2 h-5 w-5" />
                       Pagar cuota inicial ahora
                     </Button>
-                    <p className="text-center text-xs text-blue-600/60 mt-2">
+                    <p className="text-center text-xs text-ciaf-blue/60 mt-2">
                       Este pago activa tu proceso de matrícula
                     </p>
-                  </div>
+                  </InfoCard>
 
                   {/* 2️⃣ CUOTA MENSUAL - PRIORIDAD MEDIA */}
-                  <div className="bg-gradient-to-br from-emerald-50 to-emerald-100 border-2 border-emerald-200 rounded-xl p-5">
-                    <div className="flex items-center justify-center gap-2 text-emerald-600 mb-2">
-                      <Calendar className="w-5 h-5" />
-                      <span className="text-sm font-medium uppercase tracking-wide">Cuota Mensual</span>
-                    </div>
-                    <p className="text-3xl font-bold text-emerald-600 text-center">
-                      {formatCurrency(resultados.valorPorCuota)}
-                    </p>
-                    <p className="text-sm text-emerald-600/70 text-center mt-2">
-                      📘 Valor mensual según tu plan de financiación ({resultados.cantidadCuotas} cuotas)
-                    </p>
-                    
-                    <div className="mt-3 p-3 bg-white/60 rounded-lg text-xs">
-                      <div className="flex justify-between text-emerald-700/70">
-                        <span>Saldo a financiar</span>
-                        <span>{formatCurrency(resultados.montoFinanciar)}</span>
+                  <InfoCard
+                    icon={Calendar}
+                    label="Cuota Mensual"
+                    value={formatCurrency(resultados.valorPorCuota)}
+                    description={`Valor mensual según tu plan de financiación (${resultados.cantidadCuotas} cuotas)`}
+                    priority="medium"
+                  >
+                    <div className="mt-3 p-3 bg-white/80 rounded-lg text-xs border border-ciaf-blue/10">
+                      <div className="flex justify-between text-ciaf-blue/70">
+                        <span className="flex items-center gap-1">
+                          <Wallet className="w-3 h-3" />
+                          Saldo a financiar
+                        </span>
+                        <span className="font-medium">{formatCurrency(resultados.montoFinanciar)}</span>
                       </div>
                     </div>
-                  </div>
+                  </InfoCard>
 
                   {/* Valor Total Matrícula */}
-                  <div className="flex items-center justify-between py-3 border-t border-border">
-                    <span className="text-muted-foreground">Valor Total Matrícula</span>
+                  <div className="flex items-center justify-between py-3 px-4 border border-border/50 rounded-lg bg-muted/20">
+                    <span className="text-muted-foreground flex items-center gap-2">
+                      <DollarSign className="w-4 h-4" />
+                      Valor Total Matrícula
+                    </span>
                     <span className="font-bold text-lg text-foreground">{formatCurrency(resultados.valorTotal)}</span>
                   </div>
 
                   {/* Mensajes de confianza */}
                   <div className="flex flex-col gap-2 text-xs text-muted-foreground pt-2">
                     <div className="flex items-center gap-2">
-                      <Shield className="h-4 w-4 text-blue-500" />
+                      <Shield className="h-4 w-4 text-ciaf-blue" />
                       <span>Simulación sin compromiso</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <CheckCircle2 className="h-4 w-4 text-green-500" />
+                      <CheckCircle2 className="h-4 w-4 text-ciaf-blue" />
                       <span>Valores aproximados, sujetos a validación</span>
                     </div>
                   </div>
                 </div>
               ) : (
                 <div className="flex flex-col items-center justify-center py-12 text-center">
-                  <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-4">
-                    <Calculator className="w-8 h-8 text-muted-foreground" />
+                  <div className="w-16 h-16 rounded-full bg-ciaf-blue-light flex items-center justify-center mb-4">
+                    <Calculator className="w-8 h-8 text-ciaf-blue" />
                   </div>
                   <p className="text-muted-foreground">
-                    Complete el formulario y presione <strong>Calcular</strong> para ver el resumen de su crédito
+                    Complete el formulario y presione <strong className="text-ciaf-blue">Calcular</strong> para ver el resumen de su crédito
                   </p>
                 </div>
               )}
@@ -737,7 +784,7 @@ const CreditSimulator = () => {
       <Dialog open={financingPromptVisible} onOpenChange={handleFinancingDialogClose}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader className="text-center">
-            <DialogTitle className="text-xl">¿Deseas financiar tu semestre?</DialogTitle>
+            <DialogTitle className="text-xl text-ciaf-blue">¿Deseas financiar tu semestre?</DialogTitle>
             <DialogDescription className="text-muted-foreground">
               Elige la opción que mejor se adapte a tu situación
             </DialogDescription>
@@ -745,7 +792,7 @@ const CreditSimulator = () => {
           <div className="flex flex-col gap-3 mt-4">
             <Button 
               onClick={handleSelectFinancing}
-              className="h-14 text-base bg-blue-600 hover:bg-blue-700"
+              className="h-14 text-base bg-ciaf-blue hover:bg-ciaf-blue-hover transition-all"
             >
               <CheckCircle2 className="mr-2 h-5 w-5" />
               Sí, quiero financiar
@@ -753,7 +800,7 @@ const CreditSimulator = () => {
             <Button 
               onClick={handleSelectCash}
               variant="outline"
-              className="h-14 text-base border-gray-300 hover:bg-gray-50"
+              className="h-14 text-base border-border hover:bg-muted/50 transition-all"
             >
               <Banknote className="mr-2 h-5 w-5" />
               No, pagaré de contado
@@ -773,8 +820,8 @@ const CreditSimulator = () => {
       <Dialog open={paymentModalOpen} onOpenChange={setPaymentModalOpen}>
         <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="flex items-center justify-center gap-2 text-blue-700">
-              <Wallet className="w-5 h-5" />
+            <DialogTitle className="flex items-center justify-center gap-2 text-ciaf-blue">
+              <CreditCard className="w-5 h-5" strokeWidth={2} />
               Medios de Pago
             </DialogTitle>
           </DialogHeader>
@@ -784,17 +831,23 @@ const CreditSimulator = () => {
           </p>
 
           {resultados && (
-            <div className="bg-gradient-to-r from-blue-50 to-blue-100 border-2 border-blue-200 rounded-xl p-4 text-center">
-              <p className="text-sm text-blue-600 mb-1">💰 Valor a pagar:</p>
-              <p className="text-3xl font-bold text-blue-700">
+            <div className="bg-ciaf-blue-light border-2 border-ciaf-blue rounded-xl p-4 text-center">
+              <div className="flex items-center justify-center gap-2 text-ciaf-blue text-sm mb-1">
+                <Wallet className="w-4 h-4" />
+                Valor a pagar:
+              </div>
+              <p className="text-3xl font-bold text-ciaf-blue">
                 {formatCurrency(resultados.cuotaInicialTotal)}
               </p>
             </div>
           )}
           
           {/* Código QR */}
-          <div className="bg-white border-2 border-gray-100 rounded-xl p-4 flex flex-col items-center shadow-sm">
-            <p className="text-sm font-medium text-gray-700 mb-3">📱 Escanea el código QR</p>
+          <div className="bg-white border-2 border-border rounded-xl p-4 flex flex-col items-center shadow-sm">
+            <div className="flex items-center gap-2 text-sm font-medium text-foreground mb-3">
+              <CreditCard className="w-4 h-4 text-ciaf-blue" />
+              Escanea el código QR
+            </div>
             <img 
               src={qrDaviplata} 
               alt="Código QR Daviplata CIAF" 
@@ -803,48 +856,53 @@ const CreditSimulator = () => {
           </div>
 
           {/* Llave de pago Daviplata */}
-          <div className="bg-gradient-to-r from-red-50 to-orange-50 border border-red-200 rounded-xl p-4 text-center">
-            <p className="text-xs text-red-600 mb-1 font-medium">💳 Llave Daviplata</p>
-            <p className="text-2xl font-mono font-bold text-red-600">@daviciaf</p>
-            <p className="text-xs text-muted-foreground mt-1">Pago directo sin escanear</p>
+          <div className="bg-ciaf-blue-light border-2 border-ciaf-blue rounded-xl p-4 text-center">
+            <div className="flex items-center justify-center gap-2 text-ciaf-blue text-xs font-medium mb-1">
+              <Key className="w-4 h-4" />
+              Llave Daviplata
+            </div>
+            <p className="text-2xl font-mono font-bold text-ciaf-blue">@daviciaf</p>
+            <p className="text-xs text-ciaf-blue/70 mt-1">Pago directo sin escanear</p>
           </div>
 
           {/* Información de contacto */}
-          <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-xl p-4 space-y-3">
-            <p className="text-xs text-green-700 font-medium text-center mb-2">
-              📲 Envía tu soporte de pago para continuar con tu proceso
-            </p>
+          <div className="bg-muted/30 border border-border rounded-xl p-4 space-y-3">
+            <div className="flex items-center justify-center gap-2 text-xs text-foreground font-medium mb-2">
+              <Mail className="w-4 h-4 text-ciaf-blue" />
+              Envía tu soporte de pago para continuar con tu proceso
+            </div>
             
-            <div className="flex items-center justify-center gap-3 bg-white/60 rounded-lg p-2">
-              <MessageCircle className="w-5 h-5 text-green-600 flex-shrink-0" />
+            <div className="flex items-center justify-center gap-3 bg-white rounded-lg p-3 border border-border">
+              <MessageCircle className="w-5 h-5 text-ciaf-blue flex-shrink-0" />
               <a 
                 href="https://wa.me/573126814341" 
                 target="_blank" 
                 rel="noopener noreferrer"
-                className="text-green-700 font-semibold hover:underline"
+                className="text-ciaf-blue font-semibold hover:underline transition-all"
               >
                 WhatsApp: 312 681 4341
               </a>
             </div>
             
-            <div className="flex items-center justify-center gap-3 bg-white/60 rounded-lg p-2">
-              <Mail className="w-5 h-5 text-blue-600 flex-shrink-0" />
+            <div className="flex items-center justify-center gap-3 bg-white rounded-lg p-3 border border-border">
+              <Mail className="w-5 h-5 text-ciaf-blue flex-shrink-0" />
               <a 
                 href="mailto:pagos@ciaf.edu.co"
-                className="text-blue-700 font-semibold hover:underline"
+                className="text-ciaf-blue font-semibold hover:underline transition-all"
               >
-                ✉️ pagos@ciaf.edu.co
+                pagos@ciaf.edu.co
               </a>
             </div>
           </div>
 
-          <p className="text-xs text-center text-muted-foreground bg-gray-50 rounded-lg p-3">
-            ✅ Una vez verificado tu pago, recibirás confirmación de tu proceso de matrícula.
+          <p className="text-xs text-center text-muted-foreground bg-muted/30 rounded-lg p-3 flex items-center justify-center gap-2">
+            <CheckCircle2 className="w-4 h-4 text-ciaf-blue" />
+            Una vez verificado tu pago, recibirás confirmación de tu proceso de matrícula.
           </p>
 
           <Button
             onClick={() => setPaymentModalOpen(false)}
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+            className="w-full bg-ciaf-blue hover:bg-ciaf-blue-hover text-white transition-all"
           >
             Entendido
           </Button>

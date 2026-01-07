@@ -79,11 +79,13 @@ export default {
   				DEFAULT: 'hsl(var(--card))',
   				foreground: 'hsl(var(--card-foreground))'
   			},
-  			ciaf: {
-  				blue: 'hsl(var(--ciaf-blue))',
-  				lightBlue: 'hsl(var(--ciaf-light-blue))',
-  				gold: 'hsl(var(--ciaf-gold))'
-  			},
+			ciaf: {
+				blue: 'hsl(var(--ciaf-blue))',
+				'blue-light': 'hsl(var(--ciaf-blue-light))',
+				'blue-hover': 'hsl(var(--ciaf-blue-hover))',
+				lightBlue: 'hsl(var(--ciaf-light-blue))',
+				gold: 'hsl(var(--ciaf-gold))'
+			},
   			sidebar: {
   				DEFAULT: 'hsl(var(--sidebar-background))',
   				foreground: 'hsl(var(--sidebar-foreground))',

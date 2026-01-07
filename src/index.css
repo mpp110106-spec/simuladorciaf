@@ -42,8 +42,10 @@
 
     --radius: 0.5rem;
 
-    /* Custom CIAF colors */
-    --ciaf-blue: 220 100% 25%;
+    /* Custom CIAF colors - Azul institucional */
+    --ciaf-blue: 210 100% 35%;
+    --ciaf-blue-light: 210 80% 95%;
+    --ciaf-blue-hover: 210 100% 30%;
     --ciaf-light-blue: 197 100% 45%;
     --ciaf-gold: 52 30% 70%;
 
