@@ -37,82 +37,159 @@ import {
   QrCode,
   Percent,
   Clock,
-  ArrowRight
+  ArrowRight,
+  Sun,
+  Moon,
+  CalendarDays,
+  Info
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { toast } from "sonner";
 
-// Mapa de precios de matrícula por programa y semestre (Matrícula Ordinaria 2026)
-const PRECIOS_MATRICULA: Record<string, Record<number, number>> = {
+// Tipos de Jornada
+type TipoJornada = "Diurna" | "Nocturna" | "Sabatina" | "Fines de semana";
+const JORNADAS: TipoJornada[] = ["Diurna", "Nocturna", "Sabatina", "Fines de semana"];
+
+// Mapa de precios con Ordinaria y Extraordinaria 2026-I
+interface PrecioMatricula {
+  ordinaria: number;
+  extraordinaria: number;
+}
+
+const PRECIOS_MATRICULA_2026: Record<string, Record<number, PrecioMatricula>> = {
+  // ADMINISTRACIÓN
   "Técnico Profesional en Procesos Empresariales": {
-    1: 2512000, 2: 2512000, 3: 2512000, 4: 2512000
+    1: { ordinaria: 2512000, extraordinaria: 2889000 },
+    2: { ordinaria: 2512000, extraordinaria: 2889000 },
+    3: { ordinaria: 2512000, extraordinaria: 2889000 },
+    4: { ordinaria: 2512000, extraordinaria: 2889000 }
   },
   "Tecnología en Gestión y Auditoría Administrativa": {
-    5: 2628000, 6: 2628000, 7: 2628000
+    5: { ordinaria: 2628000, extraordinaria: 3022000 },
+    6: { ordinaria: 2628000, extraordinaria: 3022000 },
+    7: { ordinaria: 2628000, extraordinaria: 3022000 }
   },
   "Profesional en Administración de Empresas": {
-    8: 3223000, 9: 3223000, 10: 3223000
+    8: { ordinaria: 3223000, extraordinaria: 3706000 },
+    9: { ordinaria: 3223000, extraordinaria: 3706000 },
+    10: { ordinaria: 3223000, extraordinaria: 3706000 }
   },
-  "Técnica Profesional en Programación de Software": {
-    1: 2640000, 2: 2640000, 3: 2640000, 4: 2640000
-  },
-  "Tecnología en Desarrollo de Software": {
-    5: 3014000, 6: 3014000, 7: 3014000
-  },
-  "Profesional en Ingeniería de Software": {
-    8: 3561000, 9: 3561000, 10: 3561000
-  },
-  "Técnico Profesional en Procesos de Seguridad y Salud en el Trabajo": {
-    1: 2640000, 2: 2640000, 3: 2640000, 4: 2640000
-  },
-  "Tecnología en Gestión de la Seguridad y Salud en el Trabajo": {
-    5: 2937000, 6: 2937000
-  },
-  "Profesional en Seguridad y Salud en el Trabajo": {
-    7: 3223000, 8: 3223000, 9: 3223000, 10: 3223000
-  },
-  "Técnico Profesional en Logística de Producción": {
-    1: 2654000, 2: 2654000, 3: 2654000, 4: 2654000
-  },
-  "Tecnología en Gestión Industrial": {
-    5: 3227000, 6: 3227000, 7: 3227000
-  },
-  "Profesional en Ingeniería Industrial": {
-    8: 3540000, 9: 3540000, 10: 3540000
-  },
-  "Técnico Laboral en Mecánica y Mantenimiento de Motocicletas": {
-    1: 2224000, 2: 2224000
-  },
-  "Técnico Laboral por Competencias en Auxiliar en Enfermería": {
-    1: 2365000, 2: 2365000, 3: 2365000
-  },
-  "Técnico Laboral por Competencias en Administrativo en Salud": {
-    1: 1863000, 2: 1863000, 3: 1863000
-  },
-  "Técnico Laboral por Competencias en Auxiliar de Veterinaria": {
-    1: 2400000, 2: 2400000
-  },
+  // CONTADURÍA PÚBLICA
   "Técnico Profesional en Operaciones Contables y Financieras": {
-    1: 2129000, 2: 2129000, 3: 2129000, 4: 2129000
+    1: { ordinaria: 2129000, extraordinaria: 2448000 },
+    2: { ordinaria: 2129000, extraordinaria: 2448000 },
+    3: { ordinaria: 2129000, extraordinaria: 2448000 },
+    4: { ordinaria: 2129000, extraordinaria: 2448000 }
   },
   "Tecnología en Gestión Contable INTEP 2025": {
-    5: 2705000, 6: 2705000, 7: 2705000
+    5: { ordinaria: 2705000, extraordinaria: 3111000 },
+    6: { ordinaria: 2705000, extraordinaria: 3111000 },
+    7: { ordinaria: 2705000, extraordinaria: 3111000 }
   },
   "Profesional en Contaduría Pública INTEP 2021": {
-    8: 3349000, 9: 3349000, 10: 3349000
+    8: { ordinaria: 3349000, extraordinaria: 3851000 },
+    9: { ordinaria: 3349000, extraordinaria: 3851000 },
+    10: { ordinaria: 3349000, extraordinaria: 3851000 }
+  },
+  // SST
+  "Técnico Profesional en Procesos de Seguridad y Salud en el Trabajo": {
+    1: { ordinaria: 2640000, extraordinaria: 3036000 },
+    2: { ordinaria: 2640000, extraordinaria: 3036000 },
+    3: { ordinaria: 2640000, extraordinaria: 3036000 },
+    4: { ordinaria: 2640000, extraordinaria: 3036000 }
+  },
+  "Tecnología en Gestión de la Seguridad y Salud en el Trabajo": {
+    5: { ordinaria: 2937000, extraordinaria: 3378000 },
+    6: { ordinaria: 2937000, extraordinaria: 3378000 }
+  },
+  "Profesional en Seguridad y Salud en el Trabajo": {
+    7: { ordinaria: 3223000, extraordinaria: 3706000 },
+    8: { ordinaria: 3223000, extraordinaria: 3706000 },
+    9: { ordinaria: 3223000, extraordinaria: 3706000 },
+    10: { ordinaria: 3223000, extraordinaria: 3706000 }
+  },
+  // SOFTWARE
+  "Técnica Profesional en Programación de Software": {
+    1: { ordinaria: 2640000, extraordinaria: 3036000 },
+    2: { ordinaria: 2640000, extraordinaria: 3036000 },
+    3: { ordinaria: 2640000, extraordinaria: 3036000 },
+    4: { ordinaria: 2640000, extraordinaria: 3036000 }
+  },
+  "Tecnología en Desarrollo de Software": {
+    5: { ordinaria: 3014000, extraordinaria: 3466000 },
+    6: { ordinaria: 3014000, extraordinaria: 3466000 },
+    7: { ordinaria: 3014000, extraordinaria: 3466000 }
+  },
+  "Profesional en Ingeniería de Software": {
+    8: { ordinaria: 3561000, extraordinaria: 4095000 },
+    9: { ordinaria: 3561000, extraordinaria: 4095000 },
+    10: { ordinaria: 3561000, extraordinaria: 4095000 }
+  },
+  // INDUSTRIAL
+  "Técnico Profesional en Logística de Producción": {
+    1: { ordinaria: 2654000, extraordinaria: 3052000 },
+    2: { ordinaria: 2654000, extraordinaria: 3052000 },
+    3: { ordinaria: 2654000, extraordinaria: 3052000 },
+    4: { ordinaria: 2654000, extraordinaria: 3052000 }
+  },
+  "Tecnología en Gestión Industrial": {
+    5: { ordinaria: 3227000, extraordinaria: 3711000 },
+    6: { ordinaria: 3227000, extraordinaria: 3711000 },
+    7: { ordinaria: 3227000, extraordinaria: 3711000 }
+  },
+  "Profesional en Ingeniería Industrial": {
+    8: { ordinaria: 3540000, extraordinaria: 4071000 },
+    9: { ordinaria: 3540000, extraordinaria: 4071000 },
+    10: { ordinaria: 3540000, extraordinaria: 4071000 }
+  },
+  // ENFERMERÍA
+  "Técnico Laboral por Competencias en Auxiliar en Enfermería": {
+    1: { ordinaria: 2365000, extraordinaria: 2720000 },
+    2: { ordinaria: 2365000, extraordinaria: 2720000 },
+    3: { ordinaria: 2365000, extraordinaria: 2720000 }
+  },
+  // VETERINARIA
+  "Técnico Laboral por Competencias en Auxiliar de Veterinaria": {
+    1: { ordinaria: 2400000, extraordinaria: 2760000 },
+    2: { ordinaria: 2400000, extraordinaria: 2760000 }
+  },
+  // MOTOS
+  "Técnico Laboral en Mecánica y Mantenimiento de Motocicletas": {
+    1: { ordinaria: 2224000, extraordinaria: 2558000 },
+    2: { ordinaria: 2224000, extraordinaria: 2558000 }
+  },
+  // ADMINISTRATIVO EN SALUD
+  "Técnico Laboral por Competencias en Administrativo en Salud": {
+    1: { ordinaria: 1863000, extraordinaria: 2142000 },
+    2: { ordinaria: 1863000, extraordinaria: 2142000 },
+    3: { ordinaria: 1863000, extraordinaria: 2142000 }
   }
 };
 
-const PROGRAMAS_ACADEMICOS = Object.keys(PRECIOS_MATRICULA).sort();
+const PROGRAMAS_ACADEMICOS = Object.keys(PRECIOS_MATRICULA_2026).sort();
 
 const getSemestresDisponibles = (programa: string): number[] => {
-  if (!programa || !PRECIOS_MATRICULA[programa]) return [];
-  return Object.keys(PRECIOS_MATRICULA[programa]).map(Number).sort((a, b) => a - b);
+  if (!programa || !PRECIOS_MATRICULA_2026[programa]) return [];
+  return Object.keys(PRECIOS_MATRICULA_2026[programa]).map(Number).sort((a, b) => a - b);
 };
 
-const getPrecioMatricula = (programa: string, semestre: number): number | null => {
-  if (!programa || !PRECIOS_MATRICULA[programa]) return null;
-  return PRECIOS_MATRICULA[programa][semestre] || null;
+// Función que retorna el precio correcto según la jornada
+const getPrecioMatricula = (programa: string, semestre: number, jornada: TipoJornada): number | null => {
+  if (!programa || !PRECIOS_MATRICULA_2026[programa]) return null;
+  const precios = PRECIOS_MATRICULA_2026[programa][semestre];
+  if (!precios) return null;
+  
+  // REGLA ABSOLUTA: Diurna/Nocturna → Extraordinaria, Sabatina/Fines de semana → Ordinaria
+  if (jornada === "Diurna" || jornada === "Nocturna") {
+    return precios.extraordinaria;
+  } else {
+    return precios.ordinaria;
+  }
+};
+
+// Determina si debe mostrar el mensaje de matrícula ordinaria
+const esJornadaOrdinaria = (jornada: TipoJornada): boolean => {
+  return jornada === "Sabatina" || jornada === "Fines de semana";
 };
 
 const PORCENTAJES_CUOTA_INICIAL = [20, 30, 40, 50];
@@ -371,6 +448,7 @@ const StickyFinancingBar = ({
 const CreditSimulator = () => {
   const [programa, setPrograma] = useState<string>("");
   const [semestre, setSemestre] = useState<string>("");
+  const [jornada, setJornada] = useState<TipoJornada | "">("");
   const [valorTotal, setValorTotal] = useState<string>("");
   const [tipoCuotaInicial, setTipoCuotaInicial] = useState<"porcentaje" | "monto">("porcentaje");
   const [porcentajeCuotaInicial, setPorcentajeCuotaInicial] = useState<string>("20");
@@ -429,14 +507,28 @@ const CreditSimulator = () => {
   const handleProgramaChange = (nuevoPrograma: string) => {
     setPrograma(nuevoPrograma);
     setSemestre("");
+    setJornada("");
     setValorTotal("");
   };
 
   const handleSemestreChange = (nuevoSemestre: string) => {
     setSemestre(nuevoSemestre);
-    const precio = getPrecioMatricula(programa, parseInt(nuevoSemestre, 10));
-    if (precio) {
-      setValorTotal(precio.toString());
+    // El precio se actualizará cuando se seleccione la jornada
+    if (jornada) {
+      const precio = getPrecioMatricula(programa, parseInt(nuevoSemestre, 10), jornada as TipoJornada);
+      if (precio) {
+        setValorTotal(precio.toString());
+      }
+    }
+  };
+
+  const handleJornadaChange = (nuevaJornada: TipoJornada) => {
+    setJornada(nuevaJornada);
+    if (programa && semestre) {
+      const precio = getPrecioMatricula(programa, parseInt(semestre, 10), nuevaJornada);
+      if (precio) {
+        setValorTotal(precio.toString());
+      }
     }
   };
 
@@ -461,6 +553,10 @@ const CreditSimulator = () => {
       toast.error("Por favor seleccione un semestre");
       return false;
     }
+    if (!jornada) {
+      toast.error("Por favor seleccione una jornada");
+      return false;
+    }
     const total = parseInputValue(valorTotal);
     if (total <= 0) {
       toast.error("Por favor ingrese un valor de matrícula válido");
@@ -475,7 +571,7 @@ const CreditSimulator = () => {
       return false;
     }
     return true;
-  }, [programa, semestre, valorTotal, porcentajeReal]);
+  }, [programa, semestre, jornada, valorTotal, porcentajeReal]);
 
   const calcularSimulacion = useCallback(() => {
     if (!validarFormulario()) return;
@@ -520,6 +616,7 @@ const CreditSimulator = () => {
   const limpiarFormulario = () => {
     setPrograma("");
     setSemestre("");
+    setJornada("");
     setValorTotal("");
     setTipoCuotaInicial("porcentaje");
     setPorcentajeCuotaInicial("20");
@@ -644,6 +741,47 @@ const CreditSimulator = () => {
                 </Select>
               </div>
 
+              {/* Jornada */}
+              <div className="space-y-2">
+                <Label htmlFor="jornada" className="flex items-center gap-2 text-foreground font-medium">
+                  <Sun className="w-4 h-4 text-ciaf-blue" strokeWidth={2} />
+                  Jornada
+                </Label>
+                <Select 
+                  value={jornada} 
+                  onValueChange={(value) => handleJornadaChange(value as TipoJornada)}
+                  disabled={!semestre}
+                >
+                  <SelectTrigger id="jornada" className="h-12 bg-card border-input hover:border-ciaf-blue transition-colors">
+                    <SelectValue placeholder={semestre ? "Seleccione la jornada" : "Primero seleccione un semestre"} />
+                  </SelectTrigger>
+                  <SelectContent className="bg-popover border-border z-50">
+                    {JORNADAS.map((j) => (
+                      <SelectItem key={j} value={j} className="cursor-pointer hover:bg-muted">
+                        <span className="flex items-center gap-2">
+                          {j === "Diurna" && <Sun className="w-4 h-4" />}
+                          {j === "Nocturna" && <Moon className="w-4 h-4" />}
+                          {j === "Sabatina" && <CalendarDays className="w-4 h-4" />}
+                          {j === "Fines de semana" && <CalendarDays className="w-4 h-4" />}
+                          {j}
+                        </span>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                
+                {/* Mensaje informativo para jornadas ordinarias */}
+                {jornada && esJornadaOrdinaria(jornada as TipoJornada) && (
+                  <div className="flex items-start gap-2 bg-amber-50 border border-amber-200 rounded-lg p-3 text-amber-800">
+                    <Info className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                    <div className="text-sm">
+                      <p className="font-semibold">Información importante</p>
+                      <p className="text-amber-700">El valor mostrado corresponde a matrícula ordinaria.</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+
               {/* Valor Total */}
               <div className="space-y-2">
                 <Label htmlFor="valorTotal" className="flex items-center gap-2 text-foreground font-medium">
@@ -660,8 +798,17 @@ const CreditSimulator = () => {
                     value={valorTotal ? formatCurrency(parseInputValue(valorTotal)).replace("$", "").trim() : ""}
                     onChange={(e) => setValorTotal(e.target.value)}
                     className="h-12 pl-8 bg-card border-input hover:border-ciaf-blue focus:border-ciaf-blue transition-colors text-lg"
+                    readOnly
                   />
                 </div>
+                {jornada && (
+                  <p className="text-xs text-muted-foreground flex items-center gap-1">
+                    <Info className="w-3 h-3" />
+                    {esJornadaOrdinaria(jornada as TipoJornada) 
+                      ? "Matrícula Ordinaria 2026-I" 
+                      : "Matrícula Extraordinaria pago 2026-I"}
+                  </p>
+                )}
               </div>
 
               {/* Cuota Inicial */}
