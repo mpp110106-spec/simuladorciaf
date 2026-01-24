@@ -798,7 +798,6 @@ const CreditSimulator = () => {
                     value={valorTotal ? formatCurrency(parseInputValue(valorTotal)).replace("$", "").trim() : ""}
                     onChange={(e) => setValorTotal(e.target.value)}
                     className="h-12 pl-8 bg-card border-input hover:border-ciaf-blue focus:border-ciaf-blue transition-colors text-lg"
-                    readOnly
                   />
                 </div>
                 {jornada && (
