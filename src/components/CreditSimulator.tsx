@@ -192,7 +192,7 @@ const esJornadaOrdinaria = (jornada: TipoJornada): boolean => {
   return jornada === "Sabatina" || jornada === "Fines de semana";
 };
 
-const PORCENTAJES_CUOTA_INICIAL = [20, 30, 40, 50];
+const PORCENTAJES_CUOTA_INICIAL = [10, 20, 30, 40, 50];
 const OPCIONES_CUOTAS = [4, 5, 6];
 
 const ESTUDIO_CREDITO = 48000;
