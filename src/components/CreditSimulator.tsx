@@ -562,8 +562,8 @@ const CreditSimulator = () => {
       toast.error("Por favor ingrese un valor de matrícula válido");
       return false;
     }
-    if (porcentajeReal < 20) {
-      toast.error("La cuota inicial no puede ser menor al 20%");
+    if (porcentajeReal < 10) {
+      toast.error("La cuota inicial no puede ser menor al 10%");
       return false;
     }
     if (porcentajeReal > 100) {
@@ -876,7 +876,7 @@ const CreditSimulator = () => {
                 {porcentajeReal > 0 && porcentajeReal < 20 && (
                   <p className="text-sm text-destructive font-medium flex items-center gap-2">
                     <Shield className="w-4 h-4" />
-                    La cuota inicial debe ser mínimo el 20%
+                    La cuota inicial debe ser mínimo el 10%
                   </p>
                 )}
               </div>
