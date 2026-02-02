@@ -174,22 +174,19 @@ const getSemestresDisponibles = (programa: string): number[] => {
 };
 
 // Función que retorna el precio correcto según la jornada
+// A partir de 2026-I: TODAS las jornadas usan matrícula extraordinaria
 const getPrecioMatricula = (programa: string, semestre: number, jornada: TipoJornada): number | null => {
   if (!programa || !PRECIOS_MATRICULA_2026[programa]) return null;
   const precios = PRECIOS_MATRICULA_2026[programa][semestre];
   if (!precios) return null;
   
-  // REGLA ABSOLUTA: Diurna/Nocturna → Extraordinaria, Sabatina/Fines de semana → Ordinaria
-  if (jornada === "Diurna" || jornada === "Nocturna") {
-    return precios.extraordinaria;
-  } else {
-    return precios.ordinaria;
-  }
+  // REGLA 2026-I: Todas las jornadas ahora aplican matrícula extraordinaria
+  return precios.extraordinaria;
 };
 
-// Determina si debe mostrar el mensaje de matrícula ordinaria
+// Ya no hay jornadas con matrícula ordinaria a partir de 2026-I
 const esJornadaOrdinaria = (jornada: TipoJornada): boolean => {
-  return jornada === "Sabatina" || jornada === "Fines de semana";
+  return false;
 };
 
 const PORCENTAJES_CUOTA_INICIAL = [10, 20, 30, 40, 50];
