@@ -1,4 +1,7 @@
 import { useState, useMemo, useCallback, useEffect, useRef } from "react";
+import { Link } from "react-router-dom";
+import TurnoForm from "@/components/turnos/TurnoForm";
+import { useTracking, usePageView } from "@/hooks/useTracking";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -443,6 +446,8 @@ const StickyFinancingBar = ({
 };
 
 const CreditSimulator = () => {
+  usePageView("visita_app");
+  const { track } = useTracking();
   const [programa, setPrograma] = useState<string>("");
   const [semestre, setSemestre] = useState<string>("");
   const [jornada, setJornada] = useState<TipoJornada | "">("");
@@ -460,8 +465,8 @@ const CreditSimulator = () => {
   const [paymentModalOpen, setPaymentModalOpen] = useState(false);
   const [showCashPayment, setShowCashPayment] = useState(false);
   
-  const timerRef = useRef<NodeJS.Timeout | null>(null);
-  const popupTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const popupTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     const savedDecision = localStorage.getItem(FINANCING_DECISION_KEY);
@@ -607,6 +612,12 @@ const CreditSimulator = () => {
 
     setResultados(resultado);
     setMostrarResultados(true);
+    track("simulacion_realizada", {
+      programa: resultado.programa,
+      semestre: resultado.semestre,
+      valor_total: resultado.valorTotal,
+      cantidad_cuotas: resultado.cantidadCuotas,
+    });
     toast.success("Simulación calculada correctamente");
   }, [programa, semestre, valorTotal, tipoCuotaInicial, porcentajeCuotaInicial, montoCuotaInicial, cantidadCuotas, porcentajeReal, validarFormulario]);
 
@@ -1061,8 +1072,18 @@ const CreditSimulator = () => {
 
         {/* Footer */}
         <footer className="mt-12 text-center">
+          {mostrarResultados && resultados && (
+            <div className="mb-10 text-left">
+              <TurnoForm simulacionValor={resultados.valorTotal} />
+            </div>
+          )}
           <p className="text-sm text-muted-foreground">
             © {new Date().getFullYear()} CIAF - Centro de Instrucción y Aprendizaje Financiero
+          </p>
+          <p className="text-xs text-muted-foreground/80 mt-2">
+            <Link to="/dashboard" className="hover:text-ciaf-blue transition-colors">
+              Acceso administrativo
+            </Link>
           </p>
         </footer>
       </div>
