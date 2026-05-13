@@ -460,8 +460,8 @@ const CreditSimulator = () => {
   const [paymentModalOpen, setPaymentModalOpen] = useState(false);
   const [showCashPayment, setShowCashPayment] = useState(false);
   
-  const timerRef = useRef<NodeJS.Timeout | null>(null);
-  const popupTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const popupTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     const savedDecision = localStorage.getItem(FINANCING_DECISION_KEY);
