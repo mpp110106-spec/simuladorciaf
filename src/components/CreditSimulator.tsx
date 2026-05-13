@@ -1,4 +1,7 @@
 import { useState, useMemo, useCallback, useEffect, useRef } from "react";
+import { Link } from "react-router-dom";
+import TurnoForm from "@/components/turnos/TurnoForm";
+import { useTracking, usePageView } from "@/hooks/useTracking";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -443,6 +446,8 @@ const StickyFinancingBar = ({
 };
 
 const CreditSimulator = () => {
+  usePageView("visita_app");
+  const { track } = useTracking();
   const [programa, setPrograma] = useState<string>("");
   const [semestre, setSemestre] = useState<string>("");
   const [jornada, setJornada] = useState<TipoJornada | "">("");
@@ -607,6 +612,12 @@ const CreditSimulator = () => {
 
     setResultados(resultado);
     setMostrarResultados(true);
+    track("simulacion_realizada", {
+      programa: resultado.programa,
+      semestre: resultado.semestre,
+      valor_total: resultado.valorTotal,
+      cantidad_cuotas: resultado.cantidadCuotas,
+    });
     toast.success("Simulación calculada correctamente");
   }, [programa, semestre, valorTotal, tipoCuotaInicial, porcentajeCuotaInicial, montoCuotaInicial, cantidadCuotas, porcentajeReal, validarFormulario]);
 
