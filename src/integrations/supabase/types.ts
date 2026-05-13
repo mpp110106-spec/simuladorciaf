@@ -14,7 +14,119 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      analytics: {
+        Row: {
+          created_at: string
+          dispositivo: string | null
+          evento: string
+          id: string
+          metadata: Json | null
+          navegador: string | null
+          pagina: string | null
+          session_id: string | null
+          sistema_operativo: string | null
+        }
+        Insert: {
+          created_at?: string
+          dispositivo?: string | null
+          evento: string
+          id?: string
+          metadata?: Json | null
+          navegador?: string | null
+          pagina?: string | null
+          session_id?: string | null
+          sistema_operativo?: string | null
+        }
+        Update: {
+          created_at?: string
+          dispositivo?: string | null
+          evento?: string
+          id?: string
+          metadata?: Json | null
+          navegador?: string | null
+          pagina?: string | null
+          session_id?: string | null
+          sistema_operativo?: string | null
+        }
+        Relationships: []
+      }
+      asesores: {
+        Row: {
+          correo: string
+          created_at: string
+          estado: string
+          id: string
+          nombre: string
+        }
+        Insert: {
+          correo: string
+          created_at?: string
+          estado?: string
+          id?: string
+          nombre: string
+        }
+        Update: {
+          correo?: string
+          created_at?: string
+          estado?: string
+          id?: string
+          nombre?: string
+        }
+        Relationships: []
+      }
+      turnos: {
+        Row: {
+          asesor_id: string | null
+          correo: string | null
+          created_at: string
+          estado: string
+          id: string
+          nombre: string
+          prioridad: string
+          simulacion_valor: number | null
+          telefono: string
+          tiempo_espera: number | null
+          tipificacion: string
+          updated_at: string
+        }
+        Insert: {
+          asesor_id?: string | null
+          correo?: string | null
+          created_at?: string
+          estado?: string
+          id?: string
+          nombre: string
+          prioridad?: string
+          simulacion_valor?: number | null
+          telefono: string
+          tiempo_espera?: number | null
+          tipificacion: string
+          updated_at?: string
+        }
+        Update: {
+          asesor_id?: string | null
+          correo?: string | null
+          created_at?: string
+          estado?: string
+          id?: string
+          nombre?: string
+          prioridad?: string
+          simulacion_valor?: number | null
+          telefono?: string
+          tiempo_espera?: number | null
+          tipificacion?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "turnos_asesor_id_fkey"
+            columns: ["asesor_id"]
+            isOneToOne: false
+            referencedRelation: "asesores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
