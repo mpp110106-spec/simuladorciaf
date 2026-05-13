@@ -12,7 +12,9 @@ export const analyticsService = {
     return (data ?? []) as AnalyticsEvent[];
   },
   async track(event: AnalyticsInsert): Promise<void> {
-    const { error } = await supabase.from("analytics").insert(event);
+    const { error } = await supabase
+      .from("analytics")
+      .insert(event as unknown as never);
     if (error) {
       console.warn("[analytics] track failed", error);
     }
