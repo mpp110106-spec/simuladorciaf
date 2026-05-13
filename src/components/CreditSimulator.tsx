@@ -1072,8 +1072,18 @@ const CreditSimulator = () => {
 
         {/* Footer */}
         <footer className="mt-12 text-center">
+          {mostrarResultados && resultados && (
+            <div className="mb-10 text-left">
+              <TurnoForm simulacionValor={resultados.valorTotal} />
+            </div>
+          )}
           <p className="text-sm text-muted-foreground">
             © {new Date().getFullYear()} CIAF - Centro de Instrucción y Aprendizaje Financiero
+          </p>
+          <p className="text-xs text-muted-foreground/80 mt-2">
+            <Link to="/dashboard" className="hover:text-ciaf-blue transition-colors">
+              Acceso administrativo
+            </Link>
           </p>
         </footer>
       </div>
