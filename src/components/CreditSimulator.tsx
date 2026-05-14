@@ -1072,18 +1072,28 @@ const CreditSimulator = () => {
 
         {/* Footer */}
         <footer className="mt-12 text-center">
-          {mostrarResultados && resultados && (
-            <div className="mb-10 text-left">
-              <TurnoForm simulacionValor={resultados.valorTotal} />
-            </div>
-          )}
+          <div className="mb-10 text-left">
+            <TurnoForm simulacionValor={resultados?.valorTotal ?? null} />
+          </div>
+          <div className="mb-8 flex flex-wrap items-center justify-center gap-3">
+            <Link to="/dashboard">
+              <Button variant="outline" className="border-ciaf-blue text-ciaf-blue hover:bg-ciaf-blue hover:text-white">
+                Dashboard de atención
+              </Button>
+            </Link>
+            <Link to="/turnos">
+              <Button variant="outline" className="border-ciaf-blue text-ciaf-blue hover:bg-ciaf-blue hover:text-white">
+                Gestión de turnos
+              </Button>
+            </Link>
+            <Link to="/analytics">
+              <Button variant="outline" className="border-ciaf-blue text-ciaf-blue hover:bg-ciaf-blue hover:text-white">
+                Analítica
+              </Button>
+            </Link>
+          </div>
           <p className="text-sm text-muted-foreground">
             © {new Date().getFullYear()} CIAF - Centro de Instrucción y Aprendizaje Financiero
-          </p>
-          <p className="text-xs text-muted-foreground/80 mt-2">
-            <Link to="/dashboard" className="hover:text-ciaf-blue transition-colors">
-              Acceso administrativo
-            </Link>
           </p>
         </footer>
       </div>
