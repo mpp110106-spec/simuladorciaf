@@ -1,6 +1,8 @@
 import { Link, useLocation } from "react-router-dom";
-import { ArrowLeft, BarChart3, LayoutDashboard, ListChecks } from "lucide-react";
+import { ArrowLeft, BarChart3, LayoutDashboard, ListChecks, LogOut } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { useAuth } from "@/contexts/AuthContext";
 
 const NAV = [
   { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -10,17 +12,19 @@ const NAV = [
 
 const AdminShell = ({ title, subtitle, children }: { title: string; subtitle?: string; children: React.ReactNode }) => {
   const location = useLocation();
+  const { user, signOut } = useAuth();
   return (
     <div className="min-h-screen bg-background">
       <header className="border-b border-border bg-card">
         <div className="container mx-auto px-4 py-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <div>
             <Link to="/" className="text-xs text-muted-foreground inline-flex items-center gap-1 hover:text-ciaf-blue transition-colors">
-              <ArrowLeft className="w-3 h-3" /> Volver al simulador
+              <ArrowLeft className="w-3 h-3" /> Volver al inicio
             </Link>
             <h1 className="text-2xl font-bold text-ciaf-blue mt-1">{title}</h1>
             {subtitle && <p className="text-sm text-muted-foreground">{subtitle}</p>}
           </div>
+          <div className="flex items-center gap-2 flex-wrap">
           <nav className="flex gap-1 overflow-x-auto">
             {NAV.map(({ to, label, icon: Icon }) => {
               const active = location.pathname === to;
@@ -41,6 +45,12 @@ const AdminShell = ({ title, subtitle, children }: { title: string; subtitle?: s
               );
             })}
           </nav>
+          {user && (
+            <Button variant="ghost" size="sm" onClick={signOut} className="text-muted-foreground">
+              <LogOut className="w-4 h-4 mr-1" /> Salir
+            </Button>
+          )}
+          </div>
         </div>
       </header>
       <main className="container mx-auto px-4 py-6">{children}</main>

@@ -23,9 +23,10 @@ import { useTracking } from "@/hooks/useTracking";
 
 interface TurnoFormProps {
   simulacionValor?: number | null;
+  onSuccess?: (turnoId: string) => void;
 }
 
-const TurnoForm = ({ simulacionValor }: TurnoFormProps) => {
+const TurnoForm = ({ simulacionValor, onSuccess }: TurnoFormProps) => {
   const [submitting, setSubmitting] = useState(false);
   const [done, setDone] = useState(false);
   const { track } = useTracking();
@@ -59,8 +60,12 @@ const TurnoForm = ({ simulacionValor }: TurnoFormProps) => {
       toast.success("¡Turno solicitado!", {
         description: "Un asesor CIAF te contactará pronto.",
       });
-      setDone(true);
       reset();
+      if (onSuccess) {
+        onSuccess(turno.id);
+      } else {
+        setDone(true);
+      }
     } catch (e) {
       toast.error("No pudimos registrar tu turno", {
         description: e instanceof Error ? e.message : "Inténtalo nuevamente.",
