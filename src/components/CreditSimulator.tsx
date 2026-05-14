@@ -1,6 +1,5 @@
 import { useState, useMemo, useCallback, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
-import TurnoForm from "@/components/turnos/TurnoForm";
 import { useTracking, usePageView } from "@/hooks/useTracking";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
