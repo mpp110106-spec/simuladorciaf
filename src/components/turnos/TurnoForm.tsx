@@ -68,6 +68,7 @@ const TurnoForm = ({ simulacionValor, onSuccess }: TurnoFormProps) => {
         setDone(true);
       }
     } catch (e) {
+      console.error("Error registrando turno", e);
       toast.error("No pudimos registrar tu turno", {
         description: e instanceof Error ? e.message : "Inténtalo nuevamente.",
       });
