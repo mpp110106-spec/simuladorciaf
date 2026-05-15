@@ -109,6 +109,7 @@ export type Database = {
           estado: string
           id: string
           nombre: string
+          numero: number
           prioridad: string
           simulacion_valor: number | null
           telefono: string
@@ -123,6 +124,7 @@ export type Database = {
           estado?: string
           id?: string
           nombre: string
+          numero?: number
           prioridad?: string
           simulacion_valor?: number | null
           telefono: string
@@ -137,6 +139,7 @@ export type Database = {
           estado?: string
           id?: string
           nombre?: string
+          numero?: number
           prioridad?: string
           simulacion_valor?: number | null
           telefono?: string

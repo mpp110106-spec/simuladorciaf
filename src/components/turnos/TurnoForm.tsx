@@ -23,7 +23,7 @@ import { useTracking } from "@/hooks/useTracking";
 
 interface TurnoFormProps {
   simulacionValor?: number | null;
-  onSuccess?: (turnoId: string) => void;
+  onSuccess?: (turno: { id: string; numero: number }) => void;
 }
 
 const TurnoForm = ({ simulacionValor, onSuccess }: TurnoFormProps) => {
@@ -57,12 +57,13 @@ const TurnoForm = ({ simulacionValor, onSuccess }: TurnoFormProps) => {
         simulacion_valor: simulacionValor ?? null,
       });
       track("turno_creado", { tipificacion: data.tipificacion, turno_id: turno.id });
-      toast.success("¡Turno solicitado!", {
-        description: "Un asesor CIAF te contactará pronto.",
+      const numeroFmt = String(turno.numero ?? 0).padStart(3, "0");
+      toast.success(`¡Turno ${numeroFmt} asignado!`, {
+        description: "Guarda tu número de turno. Un asesor CIAF te contactará pronto.",
       });
       reset();
       if (onSuccess) {
-        onSuccess(turno.id);
+        onSuccess({ id: turno.id, numero: turno.numero });
       } else {
         setDone(true);
       }

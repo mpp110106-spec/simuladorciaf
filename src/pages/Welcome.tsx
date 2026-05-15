@@ -1,17 +1,25 @@
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import { Button } from "@/components/ui/button";
 import TurnoForm from "@/components/turnos/TurnoForm";
 import logoCiaf from "@/assets/logo-ciaf-azul.png";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Ticket } from "lucide-react";
 import { usePageView } from "@/hooks/useTracking";
 
 const Welcome = () => {
   const navigate = useNavigate();
   usePageView("bienvenida_visitada");
+  const [turnoNumero, setTurnoNumero] = useState<number | null>(null);
 
-  const handleSuccess = () => {
-    setTimeout(() => navigate("/simulador"), 1200);
+  const handleSuccess = (turno: { id: string; numero: number }) => {
+    setTurnoNumero(turno.numero);
+    try {
+      localStorage.setItem("ciaf_turno_numero", String(turno.numero));
+    } catch {
+      // ignore
+    }
+    setTimeout(() => navigate("/simulador"), 3500);
   };
 
   return (
@@ -30,17 +38,29 @@ const Welcome = () => {
             </p>
           </header>
 
-          <TurnoForm onSuccess={handleSuccess} />
+          {turnoNumero !== null ? (
+            <div className="rounded-xl border border-ciaf-blue/20 bg-card shadow-sm p-8 text-center space-y-4">
+              <div className="w-16 h-16 rounded-full bg-ciaf-blue-light flex items-center justify-center mx-auto">
+                <Ticket className="w-8 h-8 text-ciaf-blue" />
+              </div>
+              <p className="text-sm text-muted-foreground uppercase tracking-wide">Tu número de turno</p>
+              <p className="text-6xl font-bold text-ciaf-blue tabular-nums">
+                {String(turnoNumero).padStart(3, "0")}
+              </p>
+              <p className="text-sm text-muted-foreground">
+                Guarda este número. Te llevaremos al simulador en unos segundos…
+              </p>
+              <Button
+                onClick={() => navigate("/simulador")}
+                className="bg-ciaf-blue hover:bg-ciaf-blue/90 text-white"
+              >
+                Ir al simulador ahora <ArrowRight className="w-4 h-4 ml-1" />
+              </Button>
+            </div>
+          ) : (
+            <TurnoForm onSuccess={handleSuccess} />
+          )}
 
-          <div className="mt-6 text-center">
-            <Button
-              variant="ghost"
-              onClick={() => navigate("/simulador")}
-              className="text-muted-foreground hover:text-ciaf-blue"
-            >
-              Continuar al simulador <ArrowRight className="w-4 h-4 ml-1" />
-            </Button>
-          </div>
         </div>
       </main>
     </>
