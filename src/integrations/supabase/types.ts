@@ -190,6 +190,19 @@ export type Database = {
         }
         Returns: boolean
       }
+      request_turno: {
+        Args: {
+          p_correo: string
+          p_nombre: string
+          p_simulacion_valor?: number
+          p_telefono: string
+          p_tipificacion: string
+        }
+        Returns: {
+          id: string
+          numero: number
+        }[]
+      }
     }
     Enums: {
       app_role: "admin" | "colaborador"
