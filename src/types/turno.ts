@@ -4,6 +4,7 @@ export type TurnoTipificacion = "Financiación" | "Consultas" | "Otros";
 
 export interface Turno {
   id: string;
+  numero: number;
   nombre: string;
   telefono: string;
   correo: string | null;
