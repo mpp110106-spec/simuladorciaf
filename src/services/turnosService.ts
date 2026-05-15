@@ -12,13 +12,33 @@ export const turnosService = {
     return (data ?? []) as Turno[];
   },
   async create(input: TurnoInsert): Promise<Turno> {
-    const { data, error } = await supabase
-      .from("turnos")
-      .insert(input)
-      .select()
-      .single();
+    const { data, error } = await supabase.rpc("request_turno", {
+      p_nombre: input.nombre,
+      p_telefono: input.telefono,
+      p_correo: input.correo ?? "",
+      p_tipificacion: input.tipificacion,
+      p_simulacion_valor: input.simulacion_valor ?? undefined,
+    });
     if (error) throw error;
-    return data as Turno;
+    const turno = data?.[0];
+    if (!turno) {
+      throw new Error("No se pudo generar el número de turno.");
+    }
+    return {
+      id: turno.id,
+      numero: turno.numero,
+      nombre: input.nombre,
+      telefono: input.telefono,
+      correo: input.correo ?? null,
+      tipificacion: input.tipificacion,
+      estado: "pendiente",
+      prioridad: input.tipificacion === "Financiación" ? "alta" : input.tipificacion === "Consultas" ? "media" : "baja",
+      simulacion_valor: input.simulacion_valor ?? null,
+      asesor_id: null,
+      tiempo_espera: null,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    } as Turno;
   },
   async updateEstado(id: string, estado: TurnoEstado): Promise<void> {
     const { error } = await supabase.from("turnos").update({ estado }).eq("id", id);
