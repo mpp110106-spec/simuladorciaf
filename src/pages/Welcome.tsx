@@ -4,7 +4,7 @@ import { Helmet } from "react-helmet-async";
 import { Button } from "@/components/ui/button";
 import TurnoForm from "@/components/turnos/TurnoForm";
 import logoCiaf from "@/assets/logo-ciaf-azul.png";
-import { ArrowRight, Ticket } from "lucide-react";
+import { ArrowRight, Ticket, Lock } from "lucide-react";
 import { usePageView } from "@/hooks/useTracking";
 
 const Welcome = () => {
@@ -62,6 +62,18 @@ const Welcome = () => {
           )}
 
         </div>
+
+        <footer className="mt-10 text-center">
+          <button
+            type="button"
+            onClick={() => navigate("/auth")}
+            className="inline-flex items-center gap-1.5 text-xs text-muted-foreground/60 hover:text-ciaf-blue transition-colors"
+            aria-label="Acceso colaboradores CIAF"
+          >
+            <Lock className="w-3 h-3" />
+            Acceso colaboradores
+          </button>
+        </footer>
       </main>
     </>
   );
