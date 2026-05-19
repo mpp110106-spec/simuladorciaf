@@ -2,15 +2,13 @@ import { useState, useEffect } from "react";
 import { useNavigate, useLocation, Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import { toast } from "sonner";
-import { Loader2, Mail, Lock, User } from "lucide-react";
+import { Loader2, Mail, Lock } from "lucide-react";
 import { z } from "zod";
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
 import { useAuth } from "@/contexts/AuthContext";
@@ -28,7 +26,6 @@ const Auth = () => {
   const [loading, setLoading] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [name, setName] = useState("");
 
   const from = (location.state as { from?: string } | null)?.from || "/dashboard";
 
@@ -50,27 +47,6 @@ const Auth = () => {
     setLoading(false);
     if (error) toast.error("No pudimos iniciar sesión", { description: error.message });
     else toast.success("Sesión iniciada");
-  };
-
-  const handleSignup = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const parsed = credSchema.safeParse({ email, password });
-    if (!parsed.success) {
-      toast.error(parsed.error.errors[0].message);
-      return;
-    }
-    setLoading(true);
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        emailRedirectTo: `${window.location.origin}/dashboard`,
-        data: { display_name: name || email.split("@")[0] },
-      },
-    });
-    setLoading(false);
-    if (error) toast.error("No pudimos crear la cuenta", { description: error.message });
-    else toast.success("Cuenta creada", { description: "Verifica tu correo para iniciar sesión." });
   };
 
   const handleGoogle = async () => {
@@ -95,7 +71,7 @@ const Auth = () => {
           <CardHeader className="text-center">
             <img src={logoCiaf} alt="CIAF" className="h-12 mx-auto mb-3" />
             <CardTitle className="text-ciaf-blue">Acceso colaboradores</CardTitle>
-            <CardDescription>Ingresa con tu cuenta CIAF para administrar la atención estudiantil.</CardDescription>
+            <CardDescription>Acceso exclusivo para el equipo de Cartera CIAF.</CardDescription>
           </CardHeader>
           <CardContent>
             <Button
@@ -111,49 +87,22 @@ const Auth = () => {
               <span className="bg-card px-2 relative z-10">o con tu correo</span>
               <div className="absolute inset-x-0 top-1/2 border-t" />
             </div>
-            <Tabs defaultValue="login">
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="login">Iniciar sesión</TabsTrigger>
-                <TabsTrigger value="signup">Crear cuenta</TabsTrigger>
-              </TabsList>
-              <TabsContent value="login">
-                <form onSubmit={handleLogin} className="space-y-3 mt-4">
-                  <div className="space-y-2">
-                    <Label className="flex items-center gap-2"><Mail className="w-4 h-4 text-ciaf-blue" /> Correo</Label>
-                    <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required disabled={loading} />
-                  </div>
-                  <div className="space-y-2">
-                    <Label className="flex items-center gap-2"><Lock className="w-4 h-4 text-ciaf-blue" /> Contraseña</Label>
-                    <Input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required disabled={loading} />
-                  </div>
-                  <Button type="submit" className="w-full bg-ciaf-blue hover:bg-ciaf-blue/90 text-white" disabled={loading}>
-                    {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Iniciar sesión"}
-                  </Button>
-                </form>
-              </TabsContent>
-              <TabsContent value="signup">
-                <form onSubmit={handleSignup} className="space-y-3 mt-4">
-                  <div className="space-y-2">
-                    <Label className="flex items-center gap-2"><User className="w-4 h-4 text-ciaf-blue" /> Nombre</Label>
-                    <Input value={name} onChange={(e) => setName(e.target.value)} disabled={loading} />
-                  </div>
-                  <div className="space-y-2">
-                    <Label className="flex items-center gap-2"><Mail className="w-4 h-4 text-ciaf-blue" /> Correo</Label>
-                    <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required disabled={loading} />
-                  </div>
-                  <div className="space-y-2">
-                    <Label className="flex items-center gap-2"><Lock className="w-4 h-4 text-ciaf-blue" /> Contraseña</Label>
-                    <Input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required disabled={loading} />
-                  </div>
-                  <Button type="submit" className="w-full bg-ciaf-blue hover:bg-ciaf-blue/90 text-white" disabled={loading}>
-                    {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Crear cuenta"}
-                  </Button>
-                  <p className="text-xs text-muted-foreground text-center">
-                    Tu cuenta requerirá rol de administrador asignado por CIAF para acceder al panel.
-                  </p>
-                </form>
-              </TabsContent>
-            </Tabs>
+            <form onSubmit={handleLogin} className="space-y-3 mt-2">
+              <div className="space-y-2">
+                <Label className="flex items-center gap-2"><Mail className="w-4 h-4 text-ciaf-blue" /> Correo</Label>
+                <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required disabled={loading} />
+              </div>
+              <div className="space-y-2">
+                <Label className="flex items-center gap-2"><Lock className="w-4 h-4 text-ciaf-blue" /> Contraseña</Label>
+                <Input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required disabled={loading} />
+              </div>
+              <Button type="submit" className="w-full bg-ciaf-blue hover:bg-ciaf-blue/90 text-white" disabled={loading}>
+                {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Iniciar sesión"}
+              </Button>
+              <p className="text-xs text-muted-foreground text-center pt-1">
+                El registro está cerrado. Solo las cuentas autorizadas por CIAF pueden acceder.
+              </p>
+            </form>
             <p className="text-xs text-center text-muted-foreground mt-4">
               <Link to="/" className="hover:text-ciaf-blue">← Volver al inicio</Link>
             </p>
