@@ -43,7 +43,9 @@ import {
   Sun,
   Moon,
   CalendarDays,
-  Info
+  Info,
+  FileSignature,
+  ExternalLink
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { toast } from "sonner";
