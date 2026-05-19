@@ -1204,6 +1204,27 @@ const CreditSimulator = () => {
             Una vez verificado tu pago, recibirás confirmación de tu proceso de matrícula.
           </p>
 
+          {/* Solicitud de crédito */}
+          <div className="bg-gradient-to-br from-ciaf-blue to-ciaf-blue-hover rounded-xl p-4 text-center text-white space-y-3 shadow-md">
+            <div className="flex items-center justify-center gap-2 font-semibold">
+              <FileSignature className="w-5 h-5" />
+              Paso siguiente: solicitud de crédito
+            </div>
+            <p className="text-xs text-white/90 leading-relaxed">
+              Después de pagar tu cuota inicial, completa el formulario oficial de
+              inscripción y solicitud de crédito CIAF para formalizar tu matrícula.
+            </p>
+            <a
+              href="https://ciaf.digital/inscribete/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center justify-center gap-2 w-full bg-white text-ciaf-blue font-semibold rounded-lg px-4 py-2.5 hover:bg-white/90 transition-all"
+            >
+              Llenar solicitud de crédito
+              <ExternalLink className="w-4 h-4" />
+            </a>
+          </div>
+
           <Button
             onClick={() => setPaymentModalOpen(false)}
             className="w-full bg-ciaf-blue hover:bg-ciaf-blue-hover text-white transition-all"
