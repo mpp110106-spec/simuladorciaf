@@ -208,6 +208,52 @@ const TurnoForm = ({ simulacionValor, onSuccess }: TurnoFormProps) => {
             )}
           </div>
 
+          <div className="space-y-2">
+            <Label htmlFor="t-carrera" className="flex items-center gap-2 text-foreground font-medium">
+              <GraduationCap className="w-4 h-4 text-ciaf-blue" /> Carrera
+            </Label>
+            <Select
+              value={carrera ?? ""}
+              onValueChange={(v) => setValue("carrera", v, { shouldValidate: true })}
+              disabled={submitting}
+            >
+              <SelectTrigger id="t-carrera" aria-invalid={!!errors.carrera}>
+                <SelectValue placeholder="Selecciona tu carrera" />
+              </SelectTrigger>
+              <SelectContent>
+                {CARRERAS.map((c) => (
+                  <SelectItem key={c} value={c}>{c}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {errors.carrera && (
+              <p className="text-xs text-destructive">{errors.carrera.message as string}</p>
+            )}
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="t-semestre" className="flex items-center gap-2 text-foreground font-medium">
+              <BookOpen className="w-4 h-4 text-ciaf-blue" /> Semestre
+            </Label>
+            <Select
+              value={semestre ? String(semestre) : ""}
+              onValueChange={(v) => setValue("semestre", Number(v), { shouldValidate: true })}
+              disabled={submitting}
+            >
+              <SelectTrigger id="t-semestre" aria-invalid={!!errors.semestre}>
+                <SelectValue placeholder="Selecciona tu semestre" />
+              </SelectTrigger>
+              <SelectContent>
+                {SEMESTRES.map((s) => (
+                  <SelectItem key={s} value={String(s)}>{s}° semestre</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {errors.semestre && (
+              <p className="text-xs text-destructive">{errors.semestre.message as string}</p>
+            )}
+          </div>
+
           <div className="md:col-span-2">
             <Button
               type="submit"
