@@ -9,6 +9,8 @@ export interface Turno {
   telefono: string;
   correo: string | null;
   tipificacion: TurnoTipificacion | string;
+  carrera: string | null;
+  semestre: number | null;
   estado: TurnoEstado | string;
   prioridad: TurnoPrioridad | string;
   simulacion_valor: number | null;
@@ -16,6 +18,7 @@ export interface Turno {
   tiempo_espera: number | null;
   created_at: string;
   updated_at: string;
+  turno_fecha?: string | null;
 }
 
 export interface TurnoInsert {
@@ -23,5 +26,7 @@ export interface TurnoInsert {
   telefono: string;
   correo?: string | null;
   tipificacion: string;
+  carrera: string;
+  semestre: number;
   simulacion_valor?: number | null;
 }
