@@ -101,6 +101,27 @@ export type Database = {
         }
         Relationships: []
       }
+      turno_diario_counters: {
+        Row: {
+          created_at: string
+          fecha: string
+          ultimo_numero: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          fecha: string
+          ultimo_numero?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          fecha?: string
+          ultimo_numero?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       turnos: {
         Row: {
           asesor_id: string | null
@@ -115,6 +136,7 @@ export type Database = {
           telefono: string
           tiempo_espera: number | null
           tipificacion: string
+          turno_fecha: string
           updated_at: string
         }
         Insert: {
@@ -130,6 +152,7 @@ export type Database = {
           telefono: string
           tiempo_espera?: number | null
           tipificacion: string
+          turno_fecha: string
           updated_at?: string
         }
         Update: {
@@ -145,6 +168,7 @@ export type Database = {
           telefono?: string
           tiempo_espera?: number | null
           tipificacion?: string
+          turno_fecha?: string
           updated_at?: string
         }
         Relationships: [
