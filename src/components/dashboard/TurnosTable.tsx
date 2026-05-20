@@ -15,7 +15,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 import { ESTADOS, ESTADO_BADGE, ESTADO_LABEL, PRIORIDAD_BADGE, PRIORIDAD_LABEL, TIPIFICACIONES } from "@/lib/constants";
 import type { Turno, TurnoEstado, TurnoPrioridad } from "@/types/turno";
-import { formatCurrencyCO, formatDateTimeCO } from "@/lib/formatters";
+import { formatCurrencyCO, formatDateTimeCO, formatDateCO } from "@/lib/formatters";
 import { cn } from "@/lib/utils";
 
 interface Props {
@@ -38,13 +38,26 @@ const TurnosTable = ({ turnos, loading, onChangeEstado }: Props) => {
       if (estadoFilter !== "todos" && t.estado !== estadoFilter) return false;
       if (tipFilter !== "todos" && t.tipificacion !== tipFilter) return false;
       if (!q) return true;
-      return [t.nombre, t.correo ?? "", t.telefono].join(" ").toLowerCase().includes(q);
+      return [t.nombre, t.correo ?? "", t.telefono, t.carrera ?? "", String(t.numero ?? "")]
+        .join(" ")
+        .toLowerCase()
+        .includes(q);
     });
   }, [turnos, search, estadoFilter, tipFilter]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const safePage = Math.min(page, totalPages);
   const pageRows = filtered.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE);
+
+  const groupedByDay = useMemo(() => {
+    const groups = new Map<string, Turno[]>();
+    for (const t of pageRows) {
+      const key = t.turno_fecha ?? (t.created_at ? t.created_at.slice(0, 10) : "—");
+      if (!groups.has(key)) groups.set(key, []);
+      groups.get(key)!.push(t);
+    }
+    return Array.from(groups.entries()).sort((a, b) => (a[0] < b[0] ? 1 : -1));
+  }, [pageRows]);
 
   const handleEstadoChange = async (id: string, estado: TurnoEstado) => {
     try {
@@ -98,51 +111,70 @@ const TurnosTable = ({ turnos, loading, onChangeEstado }: Props) => {
         ) : (
           <>
             <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Estudiante</TableHead>
-                    <TableHead>Contacto</TableHead>
-                    <TableHead>Tipificación</TableHead>
-                    <TableHead>Prioridad</TableHead>
-                    <TableHead>Simulación</TableHead>
-                    <TableHead>Fecha</TableHead>
-                    <TableHead>Estado</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {pageRows.map((t) => (
-                    <TableRow key={t.id}>
-                      <TableCell className="font-medium">{t.nombre}</TableCell>
-                      <TableCell className="text-xs text-muted-foreground">
-                        <div>{t.telefono}</div>
-                        <div>{t.correo}</div>
-                      </TableCell>
-                      <TableCell>{t.tipificacion}</TableCell>
-                      <TableCell>
-                        <span className={cn("inline-flex items-center px-2 py-0.5 rounded-md text-xs border", PRIORIDAD_BADGE[t.prioridad as TurnoPrioridad] ?? "")}>
-                          {PRIORIDAD_LABEL[t.prioridad as TurnoPrioridad] ?? t.prioridad}
-                        </span>
-                      </TableCell>
-                      <TableCell>{formatCurrencyCO(t.simulacion_valor ?? null)}</TableCell>
-                      <TableCell className="text-xs text-muted-foreground">{formatDateTimeCO(t.created_at)}</TableCell>
-                      <TableCell>
-                        <Select
-                          value={t.estado}
-                          onValueChange={(v) => handleEstadoChange(t.id, v as TurnoEstado)}
-                        >
-                          <SelectTrigger className={cn("h-8 text-xs border", ESTADO_BADGE[t.estado as TurnoEstado] ?? "")}>
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {ESTADOS.map((e) => <SelectItem key={e} value={e}>{ESTADO_LABEL[e]}</SelectItem>)}
-                          </SelectContent>
-                        </Select>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+              {groupedByDay.map(([fecha, rows]) => (
+                <div key={fecha} className="mb-6">
+                  <div className="flex items-center justify-between mb-2 px-1">
+                    <h3 className="text-sm font-semibold text-ciaf-blue">
+                      {fecha === "—" ? "Sin fecha" : formatDateCO(fecha)}
+                    </h3>
+                    <span className="text-xs text-muted-foreground">{rows.length} turno{rows.length === 1 ? "" : "s"}</span>
+                  </div>
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="w-20">Turno</TableHead>
+                        <TableHead>Estudiante</TableHead>
+                        <TableHead>Contacto</TableHead>
+                        <TableHead>Carrera / Semestre</TableHead>
+                        <TableHead>Tipificación</TableHead>
+                        <TableHead>Prioridad</TableHead>
+                        <TableHead>Simulación</TableHead>
+                        <TableHead>Hora</TableHead>
+                        <TableHead>Estado</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {rows.map((t) => (
+                        <TableRow key={t.id}>
+                          <TableCell className="font-mono font-semibold text-ciaf-blue">
+                            #{String(t.numero ?? 0).padStart(3, "0")}
+                          </TableCell>
+                          <TableCell className="font-medium">{t.nombre}</TableCell>
+                          <TableCell className="text-xs text-muted-foreground">
+                            <div>{t.telefono}</div>
+                            <div>{t.correo}</div>
+                          </TableCell>
+                          <TableCell className="text-xs">
+                            <div className="font-medium text-foreground">{t.carrera ?? "—"}</div>
+                            <div className="text-muted-foreground">{t.semestre ? `${t.semestre}° semestre` : ""}</div>
+                          </TableCell>
+                          <TableCell>{t.tipificacion}</TableCell>
+                          <TableCell>
+                            <span className={cn("inline-flex items-center px-2 py-0.5 rounded-md text-xs border", PRIORIDAD_BADGE[t.prioridad as TurnoPrioridad] ?? "")}>
+                              {PRIORIDAD_LABEL[t.prioridad as TurnoPrioridad] ?? t.prioridad}
+                            </span>
+                          </TableCell>
+                          <TableCell>{formatCurrencyCO(t.simulacion_valor ?? null)}</TableCell>
+                          <TableCell className="text-xs text-muted-foreground">{formatDateTimeCO(t.created_at)}</TableCell>
+                          <TableCell>
+                            <Select
+                              value={t.estado}
+                              onValueChange={(v) => handleEstadoChange(t.id, v as TurnoEstado)}
+                            >
+                              <SelectTrigger className={cn("h-8 text-xs border", ESTADO_BADGE[t.estado as TurnoEstado] ?? "")}>
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {ESTADOS.map((e) => <SelectItem key={e} value={e}>{ESTADO_LABEL[e]}</SelectItem>)}
+                              </SelectContent>
+                            </Select>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              ))}
             </div>
             <div className="flex items-center justify-between mt-4 text-xs text-muted-foreground">
               <span>{filtered.length} resultados</span>
