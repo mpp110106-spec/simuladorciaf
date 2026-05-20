@@ -18,6 +18,8 @@ export const turnosService = {
       p_correo: input.correo ?? "",
       p_tipificacion: input.tipificacion,
       p_simulacion_valor: input.simulacion_valor ?? undefined,
+      p_carrera: input.carrera,
+      p_semestre: input.semestre,
     });
     if (error) throw error;
     const turno = data?.[0];
@@ -31,6 +33,8 @@ export const turnosService = {
       telefono: input.telefono,
       correo: input.correo ?? null,
       tipificacion: input.tipificacion,
+      carrera: input.carrera,
+      semestre: input.semestre,
       estado: "pendiente",
       prioridad: input.tipificacion === "Financiación" ? "alta" : input.tipificacion === "Consultas" ? "media" : "baja",
       simulacion_valor: input.simulacion_valor ?? null,
