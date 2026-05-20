@@ -2,6 +2,20 @@ import type { TurnoEstado, TurnoPrioridad, TurnoTipificacion } from "@/types/tur
 
 export const TIPIFICACIONES: TurnoTipificacion[] = ["Financiación", "Consultas", "Otros"];
 
+export const CARRERAS: string[] = [
+  "Administración de Empresas",
+  "Contaduría Pública",
+  "Ingeniería de Software",
+  "SST",
+  "Ingeniería Industrial",
+  "Enfermería",
+  "Veterinaria",
+  "Motos",
+  "Administración en Salud",
+];
+
+export const SEMESTRES: number[] = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+
 export const ESTADOS: TurnoEstado[] = ["pendiente", "en_proceso", "finalizado", "cancelado"];
 
 export const ESTADO_LABEL: Record<TurnoEstado, string> = {

@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import { CARRERAS } from "@/lib/constants";
+
 export const turnoSchema = z.object({
   nombre: z
     .string()
@@ -19,6 +21,14 @@ export const turnoSchema = z.object({
   tipificacion: z.enum(["Financiación", "Consultas", "Otros"], {
     errorMap: () => ({ message: "Selecciona una opción" }),
   }),
+  carrera: z
+    .string({ required_error: "Selecciona tu carrera" })
+    .refine((v) => CARRERAS.includes(v), { message: "Selecciona tu carrera" }),
+  semestre: z
+    .number({ invalid_type_error: "Selecciona tu semestre" })
+    .int()
+    .min(1, "Selecciona tu semestre")
+    .max(10, "Máximo 10"),
 });
 
 export type TurnoFormData = z.infer<typeof turnoSchema>;
