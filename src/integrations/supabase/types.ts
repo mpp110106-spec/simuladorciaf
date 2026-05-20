@@ -125,6 +125,7 @@ export type Database = {
       turnos: {
         Row: {
           asesor_id: string | null
+          carrera: string | null
           correo: string | null
           created_at: string
           estado: string
@@ -132,6 +133,7 @@ export type Database = {
           nombre: string
           numero: number
           prioridad: string
+          semestre: number | null
           simulacion_valor: number | null
           telefono: string
           tiempo_espera: number | null
@@ -141,6 +143,7 @@ export type Database = {
         }
         Insert: {
           asesor_id?: string | null
+          carrera?: string | null
           correo?: string | null
           created_at?: string
           estado?: string
@@ -148,6 +151,7 @@ export type Database = {
           nombre: string
           numero?: number
           prioridad?: string
+          semestre?: number | null
           simulacion_valor?: number | null
           telefono: string
           tiempo_espera?: number | null
@@ -157,6 +161,7 @@ export type Database = {
         }
         Update: {
           asesor_id?: string | null
+          carrera?: string | null
           correo?: string | null
           created_at?: string
           estado?: string
@@ -164,6 +169,7 @@ export type Database = {
           nombre?: string
           numero?: number
           prioridad?: string
+          semestre?: number | null
           simulacion_valor?: number | null
           telefono?: string
           tiempo_espera?: number | null
@@ -214,19 +220,35 @@ export type Database = {
         }
         Returns: boolean
       }
-      request_turno: {
-        Args: {
-          p_correo: string
-          p_nombre: string
-          p_simulacion_valor?: number
-          p_telefono: string
-          p_tipificacion: string
-        }
-        Returns: {
-          id: string
-          numero: number
-        }[]
-      }
+      request_turno:
+        | {
+            Args: {
+              p_correo: string
+              p_nombre: string
+              p_simulacion_valor?: number
+              p_telefono: string
+              p_tipificacion: string
+            }
+            Returns: {
+              id: string
+              numero: number
+            }[]
+          }
+        | {
+            Args: {
+              p_carrera?: string
+              p_correo: string
+              p_nombre: string
+              p_semestre?: number
+              p_simulacion_valor?: number
+              p_telefono: string
+              p_tipificacion: string
+            }
+            Returns: {
+              id: string
+              numero: number
+            }[]
+          }
     }
     Enums: {
       app_role: "admin" | "colaborador"
