@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { CalendarClock, Loader2, CheckCircle2, User, Phone, Mail, Tag } from "lucide-react";
+import { CalendarClock, Loader2, CheckCircle2, User, Phone, Mail, Tag, GraduationCap, BookOpen } from "lucide-react";
 import { toast } from "sonner";
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -17,7 +17,7 @@ import {
 } from "@/components/ui/select";
 
 import { turnoSchema, type TurnoFormData } from "@/lib/validations";
-import { TIPIFICACIONES } from "@/lib/constants";
+import { TIPIFICACIONES, CARRERAS, SEMESTRES } from "@/lib/constants";
 import { turnosService } from "@/services/turnosService";
 import { useTracking } from "@/hooks/useTracking";
 
@@ -41,10 +41,19 @@ const TurnoForm = ({ simulacionValor, onSuccess }: TurnoFormProps) => {
   } = useForm<TurnoFormData>({
     resolver: zodResolver(turnoSchema),
     mode: "onBlur",
-    defaultValues: { nombre: "", telefono: "", correo: "", tipificacion: undefined as unknown as TurnoFormData["tipificacion"] },
+    defaultValues: {
+      nombre: "",
+      telefono: "",
+      correo: "",
+      tipificacion: undefined as unknown as TurnoFormData["tipificacion"],
+      carrera: undefined as unknown as string,
+      semestre: undefined as unknown as number,
+    },
   });
 
   const tipificacion = watch("tipificacion");
+  const carrera = watch("carrera");
+  const semestre = watch("semestre");
 
   const onSubmit = async (data: TurnoFormData) => {
     setSubmitting(true);
@@ -54,6 +63,8 @@ const TurnoForm = ({ simulacionValor, onSuccess }: TurnoFormProps) => {
         telefono: data.telefono.trim(),
         correo: data.correo.trim(),
         tipificacion: data.tipificacion,
+        carrera: data.carrera,
+        semestre: data.semestre,
         simulacion_valor: simulacionValor ?? null,
       });
       track("turno_creado", { tipificacion: data.tipificacion, turno_id: turno.id });
