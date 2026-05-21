@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Building2, Globe, ArrowRight, Loader2, Lock, ShieldCheck, Sparkles } from "lucide-react";
 import logoCiaf from "@/assets/logo-ciaf-azul.png";
 import { usePageView } from "@/hooks/useTracking";
+import { useFlow } from "@/stores/flowStore";
 
 const TURNOS_URL = "/sede";
 const CALCULADORA_URL = "/simulador";
@@ -14,12 +15,14 @@ type Opcion = "sede" | "virtual";
 const Segmentacion = () => {
   const navigate = useNavigate();
   usePageView("segmentacion_visitada");
-  const [seleccion, setSeleccion] = useState<Opcion | null>(null);
+  const { state, setModalidad } = useFlow();
+  const [seleccion, setSeleccion] = useState<Opcion | null>(state.modalidad);
   const [cargando, setCargando] = useState(false);
 
   const seleccionar = (opcion: Opcion) => {
     if (cargando) return;
     setSeleccion(opcion);
+    setModalidad(opcion);
     setCargando(true);
     const destino = opcion === "sede" ? TURNOS_URL : CALCULADORA_URL;
     setTimeout(() => navigate(destino), 900);
