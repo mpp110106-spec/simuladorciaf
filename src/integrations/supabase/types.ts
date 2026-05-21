@@ -297,6 +297,20 @@ export type Database = {
         Args: { p_observaciones?: string; p_turno_id: string }
         Returns: undefined
       }
+      get_turno_publico: {
+        Args: { p_id: string }
+        Returns: {
+          asesor_id: string
+          asesor_nombre: string
+          atencion_fin: string
+          atencion_inicio: string
+          estado: string
+          id: string
+          numero: number
+          personas_delante: number
+          tiempo_estimado_min: number
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
