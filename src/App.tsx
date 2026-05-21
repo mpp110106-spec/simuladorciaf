@@ -14,6 +14,7 @@ import Turnos from "./pages/Turnos";
 import Analytics from "./pages/Analytics";
 import { AuthProvider } from "./contexts/AuthContext";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
+import PersistentTurnoBadge from "./components/turnos/PersistentTurnoBadge";
 
 const queryClient = new QueryClient();
 
@@ -25,6 +26,7 @@ const App = () => (
         <Sonner position="top-center" richColors />
         <BrowserRouter>
           <AuthProvider>
+            <PersistentTurnoBadge />
             <Routes>
               <Route path="/" element={<Segmentacion />} />
               <Route path="/sede" element={<Welcome />} />
