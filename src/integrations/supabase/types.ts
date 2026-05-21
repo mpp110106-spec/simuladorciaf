@@ -55,22 +55,37 @@ export type Database = {
           correo: string
           created_at: string
           estado: string
+          hora_fin: string
+          hora_inicio: string
           id: string
+          is_online: boolean
+          max_capacidad: number
           nombre: string
+          tiempo_promedio_min: number
         }
         Insert: {
           correo: string
           created_at?: string
           estado?: string
+          hora_fin?: string
+          hora_inicio?: string
           id?: string
+          is_online?: boolean
+          max_capacidad?: number
           nombre: string
+          tiempo_promedio_min?: number
         }
         Update: {
           correo?: string
           created_at?: string
           estado?: string
+          hora_fin?: string
+          hora_inicio?: string
           id?: string
+          is_online?: boolean
+          max_capacidad?: number
           nombre?: string
+          tiempo_promedio_min?: number
         }
         Relationships: []
       }
@@ -213,6 +228,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      assign_advisor: { Args: never; Returns: string }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
