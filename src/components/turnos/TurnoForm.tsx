@@ -23,7 +23,13 @@ import { useTracking } from "@/hooks/useTracking";
 
 interface TurnoFormProps {
   simulacionValor?: number | null;
-  onSuccess?: (turno: { id: string; numero: number }) => void;
+  onSuccess?: (turno: {
+    id: string;
+    numero: number;
+    asesor_nombre?: string | null;
+    personas_delante?: number;
+    tiempo_estimado_min?: number;
+  }) => void;
 }
 
 const TurnoForm = ({ simulacionValor, onSuccess }: TurnoFormProps) => {
@@ -69,12 +75,21 @@ const TurnoForm = ({ simulacionValor, onSuccess }: TurnoFormProps) => {
       });
       track("turno_creado", { tipificacion: data.tipificacion, turno_id: turno.id });
       const numeroFmt = String(turno.numero ?? 0).padStart(3, "0");
-      toast.success(`¡Turno ${numeroFmt} asignado!`, {
-        description: "Guarda tu número de turno. Un asesor CIAF te contactará pronto.",
+      const asesoraTxt = turno.asesor_nombre ? ` · ${turno.asesor_nombre}` : "";
+      toast.success(`¡Turno ${numeroFmt} asignado!${asesoraTxt}`, {
+        description: turno.asesor_nombre
+          ? `Tu asesora asignada: ${turno.asesor_nombre}.`
+          : "Guarda tu número de turno. Un asesor CIAF te contactará pronto.",
       });
       reset();
       if (onSuccess) {
-        onSuccess({ id: turno.id, numero: turno.numero });
+        onSuccess({
+          id: turno.id,
+          numero: turno.numero,
+          asesor_nombre: turno.asesor_nombre ?? null,
+          personas_delante: turno.personas_delante ?? 0,
+          tiempo_estimado_min: turno.tiempo_estimado_min ?? 0,
+        });
       } else {
         setDone(true);
       }
