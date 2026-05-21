@@ -273,6 +273,7 @@ export default function Admin() {
                     <tr>
                       <th className="text-left p-3">Asesora</th>
                       <th className="text-left p-3">Estado</th>
+                      <th className="text-left p-3">Presencia</th>
                       <th className="text-left p-3">Sede</th>
                       <th className="text-left p-3">Horario</th>
                       <th className="text-center p-3">Hoy</th>
@@ -299,6 +300,21 @@ export default function Admin() {
                             <span className={`w-2 h-2 rounded-full ${ESTADO_COLOR[a.estado_op] ?? "bg-slate-300"} ${a.estado_op === "ocupada" ? "animate-pulse" : ""}`} />
                             {ESTADO_LABEL[a.estado_op] ?? a.estado_op}
                           </span>
+                        </td>
+                        <td className="p-3">
+                          {(() => {
+                            const s = a.segundos_desde_latido;
+                            const presente = a.presente;
+                            const dot = presente ? "bg-emerald-500 animate-pulse" : s != null && s < 300 ? "bg-amber-500" : "bg-rose-500";
+                            const txt = s == null ? "Nunca" : presente ? "En línea" : s < 60 ? `${s}s` : s < 3600 ? `Hace ${Math.floor(s/60)}m` : `Hace ${Math.floor(s/3600)}h`;
+                            const color = presente ? "text-emerald-700" : s != null && s < 300 ? "text-amber-700" : "text-rose-700";
+                            return (
+                              <span className={`inline-flex items-center gap-1.5 text-xs font-semibold ${color}`}>
+                                <span className={`w-2 h-2 rounded-full ${dot}`} />
+                                {txt}
+                              </span>
+                            );
+                          })()}
                         </td>
                         <td className="p-3 text-xs text-slate-600">{a.sede_codigo ?? "—"}</td>
                         <td className="p-3 text-xs text-slate-600 tabular-nums">{a.hora_inicio?.slice(0, 5)}–{a.hora_fin?.slice(0, 5)}</td>
