@@ -43,7 +43,12 @@ export const financiacionesService = {
   },
 
   async updateEstado(id: string, estado: FinanciacionEstado, observaciones?: string | null): Promise<void> {
-    const payload: Record<string, unknown> = { estado };
+    const payload: {
+      estado: FinanciacionEstado;
+      observaciones?: string | null;
+      firmado?: boolean;
+      firma_fecha?: string;
+    } = { estado };
     if (observaciones !== undefined) payload.observaciones = observaciones;
     if (estado === "finalizado") {
       payload.firmado = true;
