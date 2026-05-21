@@ -1,18 +1,52 @@
-import { Ticket, X, UserCircle2 } from "lucide-react";
+import { Ticket, X, UserCircle2, Sparkles, Clock3 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useLocation } from "react-router-dom";
 import { useActiveTurno } from "@/hooks/useActiveTurno";
+import { useTurnoLive } from "@/hooks/useTurnoLive";
+import { useEffect, useRef } from "react";
+import { toast } from "sonner";
 
 const HIDDEN_ROUTES = ["/auth"];
 
 const PersistentTurnoBadge = () => {
   const { turno, clear } = useActiveTurno();
   const { pathname } = useLocation();
+  const { data: live } = useTurnoLive(turno?.id ?? null);
+  const lastEstado = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (!live) return;
+    if (lastEstado.current && lastEstado.current !== live.estado) {
+      if (live.estado === "en_proceso") {
+        toast.success("Tu asesora ya inició tu atención", {
+          description: live.asesor_nombre ? `${live.asesor_nombre} te está atendiendo.` : undefined,
+        });
+      } else if (live.estado === "finalizado") {
+        toast.success("Atención finalizada", { description: "Gracias por confiar en CIAF." });
+      }
+    }
+    lastEstado.current = live.estado;
+  }, [live]);
 
   if (!turno) return null;
   if (HIDDEN_ROUTES.some((r) => pathname.startsWith(r))) return null;
 
   const numeroFmt = String(turno.numero).padStart(3, "0");
+  const asesorNombre = live?.asesor_nombre ?? turno.asesor_nombre;
+  const estado = live?.estado ?? "pendiente";
+  const personas = live?.personas_delante ?? turno.personas_delante ?? 0;
+
+  const estadoLabel =
+    estado === "en_proceso" ? "En atención" :
+    estado === "finalizado" ? "Finalizado" :
+    estado === "cancelado" ? "Cancelado" :
+    personas === 0 ? "Eres el siguiente" : "En espera";
+
+  const estadoDot =
+    estado === "en_proceso" ? "bg-emerald-300 animate-pulse" :
+    estado === "finalizado" ? "bg-slate-300" :
+    estado === "cancelado" ? "bg-red-300" :
+    "bg-amber-300";
 
   return (
     <AnimatePresence>
@@ -35,12 +69,16 @@ const PersistentTurnoBadge = () => {
               <p className="text-lg font-bold tabular-nums -mt-0.5">{numeroFmt}</p>
             </div>
           </div>
-          {turno.asesor_nombre && (
+          <div className="hidden md:flex items-center gap-1.5 px-3 py-2 border-l border-white/10 bg-white/5">
+            <span className={`w-2 h-2 rounded-full ${estadoDot}`} />
+            <span className="text-[11px] font-semibold">{estadoLabel}</span>
+          </div>
+          {asesorNombre && (
             <div className="hidden sm:flex items-center gap-1.5 px-3 py-2 border-l border-white/10 bg-white/5">
               <UserCircle2 className="w-4 h-4 opacity-80" />
               <div className="leading-tight">
                 <p className="text-[10px] uppercase tracking-wider opacity-80">Asesora</p>
-                <p className="text-xs font-semibold -mt-0.5">{turno.asesor_nombre}</p>
+                <p className="text-xs font-semibold -mt-0.5">{asesorNombre}</p>
               </div>
             </div>
           )}
