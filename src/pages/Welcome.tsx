@@ -4,14 +4,13 @@ import { Helmet } from "react-helmet-async";
 import { Button } from "@/components/ui/button";
 import TurnoForm from "@/components/turnos/TurnoForm";
 import logoCiaf from "@/assets/logo-ciaf-azul.png";
-import { ArrowRight, Ticket, Lock, UserCircle2, Clock3, Users, GraduationCap, FileSignature } from "lucide-react";
+import { ArrowRight, Ticket, Lock, UserCircle2, Clock3, Users, GraduationCap, FileSignature, Globe, RotateCcw } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { usePageView } from "@/hooks/useTracking";
 import { saveActiveTurno } from "@/hooks/useActiveTurno";
 import { financiacionesService } from "@/services/financiacionesService";
 import { toast } from "sonner";
 import { useFlow } from "@/stores/flowStore";
-import { Globe, RotateCcw } from "lucide-react";
 
 interface TicketData {
   numero: number;
