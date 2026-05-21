@@ -22,7 +22,7 @@ const credSchema = z.object({
 const Auth = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { user, isAdmin, loading: authLoading } = useAuth();
+  const { user, isAdmin, isSuperAdmin, loading: authLoading } = useAuth();
   const [loading, setLoading] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -31,13 +31,14 @@ const Auth = () => {
 
   useEffect(() => {
     if (authLoading || !user) return;
+    if (isSuperAdmin) { navigate("/admin", { replace: true }); return; }
     // Si es asesora vinculada, mandar a /operacion
     supabase.from("asesores").select("id").eq("user_id", user.id).maybeSingle()
       .then(({ data }) => {
         if (data) navigate("/operacion", { replace: true });
         else navigate(isAdmin ? from : "/", { replace: true });
       });
-  }, [user, isAdmin, authLoading, from, navigate]);
+  }, [user, isAdmin, isSuperAdmin, authLoading, from, navigate]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
