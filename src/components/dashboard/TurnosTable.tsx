@@ -17,6 +17,7 @@ import { ESTADOS, ESTADO_BADGE, ESTADO_LABEL, PRIORIDAD_BADGE, PRIORIDAD_LABEL, 
 import type { Turno, TurnoEstado, TurnoPrioridad } from "@/types/turno";
 import { formatCurrencyCO, formatDateTimeCO, formatDateCO } from "@/lib/formatters";
 import { cn } from "@/lib/utils";
+import { getProgramaAcademico } from "@/lib/programas";
 
 interface Props {
   turnos: Turno[];
@@ -126,6 +127,7 @@ const TurnosTable = ({ turnos, loading, onChangeEstado }: Props) => {
                         <TableHead>Estudiante</TableHead>
                         <TableHead>Contacto</TableHead>
                         <TableHead>Carrera / Semestre</TableHead>
+                        <TableHead>Programa académico</TableHead>
                         <TableHead>Tipificación</TableHead>
                         <TableHead>Prioridad</TableHead>
                         <TableHead>Simulación</TableHead>
@@ -147,6 +149,11 @@ const TurnosTable = ({ turnos, loading, onChangeEstado }: Props) => {
                           <TableCell className="text-xs">
                             <div className="font-medium text-foreground">{t.carrera ?? "—"}</div>
                             <div className="text-muted-foreground">{t.semestre ? `${t.semestre}° semestre` : ""}</div>
+                          </TableCell>
+                          <TableCell className="text-xs max-w-[220px]">
+                            <div className="text-foreground leading-snug">
+                              {getProgramaAcademico(t.carrera, t.semestre) ?? "—"}
+                            </div>
                           </TableCell>
                           <TableCell>{t.tipificacion}</TableCell>
                           <TableCell>
