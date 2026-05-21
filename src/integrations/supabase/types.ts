@@ -361,7 +361,7 @@ export type Database = {
       start_atencion: { Args: { p_turno_id: string }; Returns: undefined }
     }
     Enums: {
-      app_role: "admin" | "colaborador"
+      app_role: "admin" | "colaborador" | "superadmin"
       asesor_estado:
         | "disponible"
         | "ocupada"
@@ -505,7 +505,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["admin", "colaborador"],
+      app_role: ["admin", "colaborador", "superadmin"],
       asesor_estado: [
         "disponible",
         "ocupada",
