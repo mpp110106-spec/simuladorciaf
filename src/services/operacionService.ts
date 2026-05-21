@@ -30,4 +30,8 @@ export const operacionService = {
     const { error } = await supabase.from("asesores").update(patch).eq("id", id);
     if (error) throw error;
   },
+  async heartbeat() {
+    const { error } = await supabase.rpc("asesor_heartbeat");
+    if (error) throw error;
+  },
 };
