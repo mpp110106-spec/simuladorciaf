@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 const KEY = "ciaf_turno_activo";
 
 export interface ActiveTurno {
+  id?: string;
   numero: number;
   asesor_nombre?: string | null;
   personas_delante?: number;
