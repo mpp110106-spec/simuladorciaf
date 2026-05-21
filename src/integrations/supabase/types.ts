@@ -411,6 +411,7 @@ export type Database = {
         Args: { p_asesor_id: string; p_sede_id: string }
         Returns: undefined
       }
+      admin_usuarios_resumen: { Args: never; Returns: Json }
       assign_advisor:
         | { Args: never; Returns: string }
         | { Args: { p_sede_id?: string }; Returns: string }
