@@ -1,120 +1,123 @@
-# Plan: Plataforma Operativa de Asesoras CIAF
+# Centro de Control Ejecutivo CIAF
 
-Este es un proyecto grande. Lo divido en **5 fases entregables** para que puedas validar progreso real entre cada una. Te confirmo cada fase antes de pasar a la siguiente.
+Módulo exclusivo `/admin` para `direccion.riesgos@ciaf.edu.co` — operación completa en tiempo real, multi-sede, con satisfacción y ranking.
 
----
-
-## Estado actual (lo que ya existe)
-
-- Tabla `asesores` con `nombre`, `correo`, `estado`, `hora_inicio`, `hora_fin`, `max_capacidad`, `tiempo_promedio_min`, `is_online`.
-- Función `assign_advisor()` que ya filtra por horario, estado disponible, capacidad y carga.
-- `request_turno()` asigna automáticamente al crear turno.
-- 3 cuentas admin ya reconocidas: `pagos@`, `auxcobranza@`, `aux.cartera1@` (+ `direccion.riesgos@`).
-- Dashboard admin, tabla de turnos, panel de financiaciones.
-
-**Lo que falta:** vincular cuentas ↔ asesoras, dashboard operativo *por asesora*, control de tiempos reales, estados extendidos, asignación automática mejorada y experiencia realtime para el estudiante.
+Lo divido en **4 fases** para validar progreso entre cada una.
 
 ---
 
-## FASE 1 — Modelo de datos operativo
+## FASE 1 — Modelo de datos: sedes + satisfacción + rol superadmin
 
 Migración SQL:
 
-1. **Vincular cuenta ↔ asesora**: agregar `asesores.user_id uuid` (nullable, único). Insertar/actualizar las 3 asesoras:
-   - Mariana Pacheco → `pagos@ciaf.edu.co`
-   - Juliana Mejía → `auxcobranza@ciaf.edu.co`
-   - Elena Cabrera → `aux.cartera1@ciaf.edu.co`
-   - Trigger en `auth.users` que rellene `asesores.user_id` cuando el correo coincida (similar a `handle_new_admin_user`).
-2. **Estados extendidos de asesora** (enum `asesor_estado`): `disponible`, `ocupada`, `en_llamada`, `en_pausa`, `almuerzo`, `offline`, `jornada_finalizada`.
-3. **Pausas**: `pausa_inicio time`, `pausa_fin time`.
-4. **Control de tiempos en `turnos`**: `atencion_inicio timestamptz`, `atencion_fin timestamptz`, `pausado_at timestamptz`, `observaciones text`.
-5. **Función `assign_advisor()`** actualizada: solo asesoras en estado `disponible`, online, dentro de horario y fuera de pausa/almuerzo.
-6. **Funciones RPC nuevas**:
-   - `start_atencion(turno_id)` — marca `en_proceso`, registra `atencion_inicio`, pone asesora en `ocupada`.
-   - `finish_atencion(turno_id, observaciones?)` — marca `finalizado`, registra `atencion_fin`, calcula `tiempo_espera`, recalcula `tiempo_promedio_min` de la asesora, libera estado.
-   - `set_asesor_estado(estado)` — la asesora cambia su propio estado.
-   - `call_next_turno()` — toma el siguiente pendiente asignado a la asesora.
-7. **RLS**: cada asesora puede leer/editar sus turnos asignados; admins ven todo.
+1. **Rol `superadmin`** en enum `app_role` (separado de `admin`). Trigger asigna `superadmin` al correo `direccion.riesgos@ciaf.edu.co` al iniciar sesión. Las demás cuentas admin existentes mantienen `admin`.
+2. **Tabla `sedes`**: `id`, `codigo` ('CRAI' | 'SEXTA'), `nombre`, `activa`. Seed con CRAI y Sexta.
+3. **`asesores.sede_id`** (FK nullable). Mariana, Juliana y Elena quedan asignables desde el panel.
+4. **`turnos.sede_id`** (FK nullable, requerido para nuevos turnos).
+5. **Tabla `encuestas_satisfaccion`**:
+   - `turno_id` (FK único), `asesor_id`, `sede_id`
+   - `rating` (1–5 estrellas — experiencia general)
+   - `atencion_score`, `tiempo_espera_score`, `proceso_financiero_score`, `recomendaria_score` (1–10)
+   - `resolvio_dudas` (boolean), `comentario` (text)
+   - `created_at`
+6. **RLS**:
+   - INSERT público (anon) — el estudiante envía su encuesta sin login.
+   - SELECT solo `superadmin`.
+   - Asesoras y admins regulares **no ven** satisfacción.
+7. **Funciones RPC** (security definer, solo superadmin):
+   - `admin_kpis_globales()` — totales, promedios, conversiones del día.
+   - `admin_asesoras_resumen()` — fila por asesora con estado, capacidad, atendidos hoy/semana/mes, tiempo prom., ocupación, satisfacción, ranking.
+   - `admin_sedes_resumen()` — fila por sede con totales, esperando, tiempos, asesoras activas.
+   - `admin_satisfaccion_resumen()` — promedios globales, por asesora, por sede, tendencias 30 días, comentarios recientes.
+   - `admin_set_sede_asesora(asesor_id, sede_id)` — asigna sede a una asesora.
+8. **`request_turno`** se actualiza para aceptar `p_sede_id` y el ranking de `assign_advisor` prefiere asesoras de la misma sede.
 
 ---
 
-## FASE 2 — Dashboard operativo por asesora
+## FASE 2 — Selector de sede para el estudiante + encuesta de satisfacción
 
-Nueva ruta `/operacion` (protegida, requiere ser asesora vinculada).
+Frontend del estudiante:
 
-- **Header premium**: nombre asesora, estado actual con selector, switch online/offline, horario, próxima pausa.
-- **Resumen del día (KPIs)**: atendidos, en espera, en atención, finalizados, tiempo promedio, capacidad `X/10`.
-- **Tablero Kanban** con 3 columnas (Esperando · En atención · Finalizados) usando drag-free + animaciones Framer Motion.
-- **Cards de turno**: número grande, nombre, carrera/semestre, tipificación, programa académico, valor simulación, badges de prioridad y financiación.
-- **Acciones por card**: iniciar, pausar, finalizar, llamar siguiente, agregar observación, ver financiación.
-- **Modal de finalización**: observaciones + tiempo automático mostrado.
-- **Modal de configuración**: horario, pausa, capacidad máxima.
-
-Estética: `#001550 / #013084 / #0699d9`, glassmorphism, shadows premium, microinteracciones.
+- En el flujo de turno: **selector visual de sede** (cards CRAI / Sexta con icono y descripción). Persistido en `flowStore` y enviado a `request_turno`.
+- Cuando el turno cambia a `finalizado` en realtime (`useTurnoLive`), el badge persistente y la `MiTurnoCard` muestran un CTA **"Califica tu experiencia"** que abre la encuesta.
+- Componente `EncuestaSatisfaccion`:
+  - 1 paso: estrellas globales (1–5) + 4 sliders (1–10) + 1 toggle + comentario opcional.
+  - Envío directo a `encuestas_satisfaccion` (anon, política INSERT pública).
+  - Confirmación animada de agradecimiento.
+- Una sola encuesta por turno (constraint `UNIQUE(turno_id)`).
 
 ---
 
-## FASE 3 — Asignación inteligente + tiempos reales
+## FASE 3 — Centro de control ejecutivo `/admin`
 
-- `assign_advisor()` mejorada con ranking por `carga_activa ASC, tiempo_acumulado_estimado ASC, tiempo_promedio_min ASC, random()`.
-- Al finalizar atención, actualizar `tiempo_promedio_min` con promedio ponderado real (últimas N atenciones).
-- Auto-pausa de asignación: si asesora está `en_pausa`, `almuerzo`, `offline`, fuera de horario o al tope de capacidad → excluida.
-- Reasignación automática si una asesora pasa a `offline` con turnos pendientes (función `reassign_pending(asesor_id)`).
+Ruta `/admin` protegida por `SuperAdminRoute` (verifica `has_role(uid, 'superadmin')`). Si un admin normal accede → redirige a `/dashboard`.
 
----
+**Layout premium** con `Sidebar` colapsable (shadcn):
 
-## FASE 4 — Experiencia premium del estudiante en realtime
+- Resumen
+- Asesoras
+- Sedes
+- Satisfacción
+- Turnos en vivo
+- Configuración
 
-- Componente `MiTurnoCard` (suscripción Supabase realtime al turno del estudiante):
-  - "Tu asesora: **Juliana Mejía**"
-  - "Hay 2 personas delante" (solo si > 0)
-  - "Tiempo estimado: 14 minutos" (recalculado en vivo)
-  - Estado animado: pendiente → llamado → en atención → finalizado.
-- Actualizar `PersistentTurnoBadge` esquina superior izquierda con datos vivos (número, asesora, estado), visible en toda la navegación.
-- Notificación toast cuando la asesora inicia atención del turno del estudiante.
-- En `/financiacion` y `/sede`, mostrar siempre asesora asignada.
+**Resumen ejecutivo** (`/admin`):
 
----
+- 8 KPIs en cards glassmorphism: estudiantes hoy, atenciones activas, turnos esperando, financiaciones del día, tiempo promedio global, satisfacción promedio, tasa de finalización, firmas pendientes.
+- Gráfico de área "Atenciones por hora" (Recharts).
+- Gráfico de barras "Atenciones por sede".
+- Donut "Distribución por estado de turno".
+- Sparkline "Tendencia 7 días".
 
-## FASE 5 — Pulido y realtime global
+**Asesoras** (`/admin/asesoras`):
 
-- Habilitar realtime para `turnos` y `asesores` (`ALTER PUBLICATION supabase_realtime ADD TABLE ...`).
-- Hook `useAsesoraActual()` que detecta si el usuario logueado es asesora.
-- Redirección automática al login: asesoras → `/operacion`, admins → `/dashboard`.
-- Skeletons, animaciones de entrada, badges de estado animados, progress bars de capacidad.
-- Sidebar con navegación para asesoras (Operación · Historial · Configuración).
+- Tabla premium con cada asesora: avatar + nombre, sede, estado actual (badge animado), horario, pausa, capacidad `X/Y` con progress bar, atendidos hoy/semana/mes, tiempo promedio, ocupación %, satisfacción ⭐, posición en ranking.
+- Modal de detalle con historial de actividad y mini-charts.
+- Acción: cambiar sede asignada.
 
----
+**Sedes** (`/admin/sedes`):
 
-## Detalles técnicos clave
+- Cards por sede con: turnos hoy, en espera, en atención, finalizados, asesoras activas, tiempo promedio, satisfacción, financiaciones.
+- Comparativo lado a lado CRAI vs Sexta con barras horizontales.
 
-```text
-asesores
-├── user_id (FK auth.users, único)
-├── estado (enum asesor_estado)
-├── pausa_inicio / pausa_fin
-└── (existentes)
+**Ranking** (en Resumen y Asesoras):
 
-turnos
-├── atencion_inicio
-├── atencion_fin
-├── pausado_at
-└── observaciones
+- Podio top 3 con métricas: satisfacción, tiempo promedio, atendidos.
 
-RPC nuevas
-├── start_atencion(turno_id)
-├── finish_atencion(turno_id, obs?)
-├── set_asesor_estado(estado)
-├── call_next_turno()
-└── reassign_pending(asesor_id)
-```
-
-Stack: React + Tailwind + Framer Motion + shadcn (ya instalados). Sin nuevas dependencias.
+**Realtime**: suscripción a `turnos`, `asesores` y `encuestas_satisfaccion` para refrescar KPIs y tablas en vivo (con throttle).
 
 ---
 
-## ¿Por dónde empiezo?
+## FASE 4 — Analytics de satisfacción + pulido
 
-Sugiero **arrancar por Fase 1 (migración + vincular cuentas)** porque desbloquea todo lo demás. Cuando esté lista y validada, paso a Fase 2 (dashboard operativo), y así sucesivamente.
+`/admin/satisfaccion`:
+
+- Promedio global con estrella grande animada.
+- Tabla por asesora ordenada por satisfacción.
+- Tabla por sede.
+- Lista de comentarios recientes: filtros positivos/negativos (score ≥ 8 vs ≤ 5).
+- Tendencia 30 días (LineChart).
+- Distribución de ratings (histograma).
+
+Pulido global:
+
+- Skeletons en todas las tablas y cards.
+- Animaciones de entrada (Framer Motion staggered).
+- Búsqueda y filtro de fecha en tablas grandes.
+- Export CSV (cliente) en tablas de asesoras y satisfacción.
+
+---
+
+## Stack
+
+React + Tailwind + Framer Motion + shadcn + Recharts (ya instalado) + Supabase realtime. Sin nuevas dependencias.
+
+Colores oficiales: `#001550`, `#013084`, `#0699d9` con glassmorphism.
+
+---
+
+## Por dónde empezar
+
+Propongo arrancar por **Fase 1** porque desbloquea todo lo demás (rol superadmin + tabla sedes + encuesta + RPCs). En cuanto la migración esté aprobada, pasamos a Fase 2.
 
 ¿Apruebas el plan y arrancamos con la **Fase 1**?
