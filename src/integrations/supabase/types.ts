@@ -115,6 +115,48 @@ export type Database = {
           },
         ]
       }
+      assignment_logs: {
+        Row: {
+          asesor_id: string | null
+          capacidad: number | null
+          carga_al_asignar: number | null
+          created_at: string
+          detalle: Json | null
+          fallback: boolean
+          id: string
+          motivo: string
+          sede_id: string | null
+          tiempo_promedio_min: number | null
+          turno_id: string | null
+        }
+        Insert: {
+          asesor_id?: string | null
+          capacidad?: number | null
+          carga_al_asignar?: number | null
+          created_at?: string
+          detalle?: Json | null
+          fallback?: boolean
+          id?: string
+          motivo: string
+          sede_id?: string | null
+          tiempo_promedio_min?: number | null
+          turno_id?: string | null
+        }
+        Update: {
+          asesor_id?: string | null
+          capacidad?: number | null
+          carga_al_asignar?: number | null
+          created_at?: string
+          detalle?: Json | null
+          fallback?: boolean
+          id?: string
+          motivo?: string
+          sede_id?: string | null
+          tiempo_promedio_min?: number | null
+          turno_id?: string | null
+        }
+        Relationships: []
+      }
       encuestas_satisfaccion: {
         Row: {
           asesor_id: string | null
@@ -416,9 +458,7 @@ export type Database = {
       }
       admin_usuarios_resumen: { Args: never; Returns: Json }
       asesor_heartbeat: { Args: never; Returns: undefined }
-      assign_advisor:
-        | { Args: never; Returns: string }
-        | { Args: { p_sede_id?: string }; Returns: string }
+      assign_advisor: { Args: { p_sede_id?: string }; Returns: string }
       call_next_turno: { Args: never; Returns: string }
       finish_atencion: {
         Args: { p_observaciones?: string; p_turno_id: string }
