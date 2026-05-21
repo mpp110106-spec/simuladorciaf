@@ -89,6 +89,45 @@ export type Database = {
         }
         Relationships: []
       }
+      financiaciones: {
+        Row: {
+          created_at: string
+          cuotas: number | null
+          estado: Database["public"]["Enums"]["financiacion_estado"]
+          firma_fecha: string | null
+          firmado: boolean
+          id: string
+          monto_solicitado: number | null
+          observaciones: string | null
+          turno_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          cuotas?: number | null
+          estado?: Database["public"]["Enums"]["financiacion_estado"]
+          firma_fecha?: string | null
+          firmado?: boolean
+          id?: string
+          monto_solicitado?: number | null
+          observaciones?: string | null
+          turno_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          cuotas?: number | null
+          estado?: Database["public"]["Enums"]["financiacion_estado"]
+          firma_fecha?: string | null
+          firmado?: boolean
+          id?: string
+          monto_solicitado?: number | null
+          observaciones?: string | null
+          turno_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
@@ -272,6 +311,14 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "colaborador"
+      financiacion_estado:
+        | "pendiente"
+        | "en_revision"
+        | "aprobado"
+        | "rechazado"
+        | "req_documentos"
+        | "en_firma"
+        | "finalizado"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -400,6 +447,15 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "colaborador"],
+      financiacion_estado: [
+        "pendiente",
+        "en_revision",
+        "aprobado",
+        "rechazado",
+        "req_documentos",
+        "en_firma",
+        "finalizado",
+      ],
     },
   },
 } as const

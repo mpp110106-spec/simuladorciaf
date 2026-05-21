@@ -4,16 +4,21 @@ import { Helmet } from "react-helmet-async";
 import { Button } from "@/components/ui/button";
 import TurnoForm from "@/components/turnos/TurnoForm";
 import logoCiaf from "@/assets/logo-ciaf-azul.png";
-import { ArrowRight, Ticket, Lock, UserCircle2, Clock3, Users } from "lucide-react";
+import { ArrowRight, Ticket, Lock, UserCircle2, Clock3, Users, GraduationCap, FileSignature } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { usePageView } from "@/hooks/useTracking";
 import { saveActiveTurno } from "@/hooks/useActiveTurno";
+import { financiacionesService } from "@/services/financiacionesService";
+import { toast } from "sonner";
 
 interface TicketData {
   numero: number;
   asesor_nombre?: string | null;
   personas_delante?: number;
   tiempo_estimado_min?: number;
+  tipificacion?: string;
+  programa?: string | null;
+  financiacion_id?: string | null;
 }
 
 const Welcome = () => {
@@ -22,8 +27,19 @@ const Welcome = () => {
   const [ticket, setTicket] = useState<TicketData | null>(null);
   const [countdown, setCountdown] = useState(10);
 
-  const handleSuccess = (turno: TicketData & { id: string }) => {
-    setTicket(turno);
+  const handleSuccess = async (turno: TicketData & { id: string }) => {
+    let financiacion_id: string | null = null;
+    if (turno.tipificacion === "Financiación") {
+      try {
+        const fin = await financiacionesService.createForTurno({ turno_id: turno.id });
+        financiacion_id = fin.id;
+        localStorage.setItem("ciaf_financiacion_id", fin.id);
+      } catch (e) {
+        console.error("No se pudo iniciar el estudio de crédito", e);
+        toast.error("No pudimos iniciar el estudio de crédito automáticamente.");
+      }
+    }
+    setTicket({ ...turno, financiacion_id });
     setCountdown(10);
     saveActiveTurno({
       numero: turno.numero,
@@ -33,6 +49,7 @@ const Welcome = () => {
     });
     try {
       localStorage.setItem("ciaf_turno_numero", String(turno.numero));
+      if (turno.programa) localStorage.setItem("ciaf_programa", turno.programa);
     } catch {
       // ignore
     }
@@ -126,6 +143,18 @@ const Welcome = () => {
                   </div>
                 )}
 
+                {ticket.programa && (
+                  <div className="rounded-2xl bg-white/10 ring-1 ring-white/15 p-4 flex items-start gap-3">
+                    <div className="w-10 h-10 rounded-full bg-white/15 flex items-center justify-center shrink-0">
+                      <GraduationCap className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <p className="text-[10px] uppercase tracking-wider opacity-70">Programa</p>
+                      <p className="text-sm font-semibold leading-snug">{ticket.programa}</p>
+                    </div>
+                  </div>
+                )}
+
                 <div className="grid grid-cols-2 gap-3">
                   {(ticket.personas_delante ?? 0) > 0 && (
                     <div className="rounded-xl bg-white/10 ring-1 ring-white/15 p-3">
@@ -170,6 +199,16 @@ const Welcome = () => {
                     {countdown > 0 ? `Cerrar (${countdown}s)` : "Cerrar"}
                   </Button>
                 </div>
+
+                {ticket.financiacion_id && (
+                  <Button
+                    variant="ghost"
+                    onClick={() => navigate("/financiacion")}
+                    className="w-full text-white hover:bg-white/15 border border-white/20"
+                  >
+                    <FileSignature className="w-4 h-4 mr-1" /> Ver mi estudio de crédito
+                  </Button>
+                )}
 
                 <p className="text-[11px] text-center opacity-70">
                   Tu número de turno permanecerá visible mientras navegas.
