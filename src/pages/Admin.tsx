@@ -3,7 +3,7 @@ import { Helmet } from "react-helmet-async";
 import { motion } from "framer-motion";
 import {
   LayoutDashboard, Users, Building2, Star, LogOut, Loader2, TrendingUp,
-  Hourglass, Zap, CheckCircle2, Clock, FileSignature, Activity,
+  Hourglass, Zap, CheckCircle2, Clock, FileSignature, Activity, UserCog, Shield, Mail, CheckCircle,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
@@ -56,13 +56,14 @@ export default function Admin() {
   const [asesoras, setAsesoras] = useState<any[]>([]);
   const [sedes, setSedes] = useState<any[]>([]);
   const [satis, setSatis] = useState<any>(null);
+  const [usuarios, setUsuarios] = useState<any[]>([]);
 
   const cargar = async () => {
     try {
-      const [k, a, s, sa] = await Promise.all([
-        adminService.kpis(), adminService.asesoras(), adminService.sedes(), adminService.satisfaccion(),
+      const [k, a, s, sa, u] = await Promise.all([
+        adminService.kpis(), adminService.asesoras(), adminService.sedes(), adminService.satisfaccion(), adminService.usuarios(),
       ]);
-      setKpis(k); setAsesoras(a as any[]); setSedes(s as any[]); setSatis(sa);
+      setKpis(k); setAsesoras(a as any[]); setSedes(s as any[]); setSatis(sa); setUsuarios(u as any[]);
     } catch (e) {
       toast.error("Error cargando datos", { description: e instanceof Error ? e.message : "" });
     } finally { setLoading(false); }
