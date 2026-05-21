@@ -3,7 +3,7 @@ import { Helmet } from "react-helmet-async";
 import { motion } from "framer-motion";
 import {
   LayoutDashboard, Users, Building2, Star, LogOut, Loader2, TrendingUp,
-  Hourglass, Zap, CheckCircle2, Clock, FileSignature, Activity,
+  Hourglass, Zap, CheckCircle2, Clock, FileSignature, Activity, UserCog, Shield, Mail, CheckCircle,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
@@ -56,13 +56,14 @@ export default function Admin() {
   const [asesoras, setAsesoras] = useState<any[]>([]);
   const [sedes, setSedes] = useState<any[]>([]);
   const [satis, setSatis] = useState<any>(null);
+  const [usuarios, setUsuarios] = useState<any[]>([]);
 
   const cargar = async () => {
     try {
-      const [k, a, s, sa] = await Promise.all([
-        adminService.kpis(), adminService.asesoras(), adminService.sedes(), adminService.satisfaccion(),
+      const [k, a, s, sa, u] = await Promise.all([
+        adminService.kpis(), adminService.asesoras(), adminService.sedes(), adminService.satisfaccion(), adminService.usuarios(),
       ]);
-      setKpis(k); setAsesoras(a as any[]); setSedes(s as any[]); setSatis(sa);
+      setKpis(k); setAsesoras(a as any[]); setSedes(s as any[]); setSatis(sa); setUsuarios(u as any[]);
     } catch (e) {
       toast.error("Error cargando datos", { description: e instanceof Error ? e.message : "" });
     } finally { setLoading(false); }
@@ -408,6 +409,88 @@ export default function Admin() {
               )}
             </div>
           )}
+
+          {/* Usuarios del sistema */}
+          <div>
+            <h2 className="text-lg font-bold text-[#001550] mb-3 flex items-center gap-2">
+              <UserCog className="w-5 h-5" /> Usuarios del sistema
+              <span className="text-xs font-normal text-slate-500 ml-1">({usuarios.length})</span>
+            </h2>
+            <Card className="bg-white/70 backdrop-blur-md border-white/40 overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead className="bg-slate-50/80 text-[10px] uppercase tracking-wider text-slate-600">
+                    <tr>
+                      <th className="text-left p-3">Usuario</th>
+                      <th className="text-left p-3">Correo</th>
+                      <th className="text-left p-3">Rol</th>
+                      <th className="text-left p-3">Sede</th>
+                      <th className="text-center p-3">Estado</th>
+                      <th className="text-left p-3">Verificado</th>
+                      <th className="text-left p-3">Último ingreso</th>
+                      <th className="text-left p-3">Registrado</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {usuarios.map((u: any) => {
+                      const nombre = u.asesor_nombre ?? u.display_name ?? u.email?.split("@")[0] ?? "—";
+                      const isSuper = u.roles?.includes("superadmin");
+                      const isAdmin = u.roles?.includes("admin");
+                      const isAsesora = !!u.asesor_id;
+                      const rolLabel = isSuper ? "Dirección" : isAdmin ? "Administrador" : isAsesora ? "Asesora" : "Estudiante";
+                      const rolColor = isSuper ? "bg-purple-100 text-purple-700 border-purple-200"
+                        : isAdmin ? "bg-rose-100 text-rose-700 border-rose-200"
+                        : isAsesora ? "bg-sky-100 text-sky-700 border-sky-200"
+                        : "bg-slate-100 text-slate-600 border-slate-200";
+                      return (
+                        <tr key={u.user_id} className="border-t border-slate-100 hover:bg-slate-50/50">
+                          <td className="p-3">
+                            <div className="flex items-center gap-2">
+                              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#001550] to-[#0699d9] flex items-center justify-center text-white text-xs font-bold">
+                                {nombre.split(" ").map((n: string) => n[0]).slice(0, 2).join("").toUpperCase()}
+                              </div>
+                              <span className="font-semibold text-[#001550]">{nombre}</span>
+                            </div>
+                          </td>
+                          <td className="p-3 text-xs text-slate-600">
+                            <span className="inline-flex items-center gap-1"><Mail className="w-3 h-3" />{u.email}</span>
+                          </td>
+                          <td className="p-3">
+                            <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full border text-[11px] font-semibold ${rolColor}`}>
+                              <Shield className="w-3 h-3" /> {rolLabel}
+                            </span>
+                          </td>
+                          <td className="p-3 text-xs text-slate-600">{u.sede_codigo ?? "—"}</td>
+                          <td className="p-3 text-center">
+                            {isAsesora ? (
+                              <span className="inline-flex items-center gap-1.5 text-xs">
+                                <span className={`w-2 h-2 rounded-full ${ESTADO_COLOR[u.estado_op] ?? "bg-slate-300"} ${u.estado_op === "ocupada" ? "animate-pulse" : ""}`} />
+                                {ESTADO_LABEL[u.estado_op] ?? "—"}
+                              </span>
+                            ) : <span className="text-slate-300 text-xs">—</span>}
+                          </td>
+                          <td className="p-3 text-xs">
+                            {u.email_confirmed_at
+                              ? <span className="inline-flex items-center gap-1 text-emerald-600"><CheckCircle className="w-3 h-3" /> Sí</span>
+                              : <span className="text-amber-600">Pendiente</span>}
+                          </td>
+                          <td className="p-3 text-xs text-slate-600 tabular-nums">
+                            {u.last_sign_in_at ? new Date(u.last_sign_in_at).toLocaleString("es-CO", { dateStyle: "short", timeStyle: "short" }) : "—"}
+                          </td>
+                          <td className="p-3 text-xs text-slate-500 tabular-nums">
+                            {u.created_at ? new Date(u.created_at).toLocaleDateString("es-CO") : "—"}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                    {usuarios.length === 0 && (
+                      <tr><td colSpan={8} className="p-6 text-center text-sm text-slate-400">Sin usuarios registrados.</td></tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </Card>
+          </div>
         </main>
       </div>
     </>
