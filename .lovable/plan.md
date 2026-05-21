@@ -1,82 +1,74 @@
-# Plan: Plataforma de atención estudiantil CIAF
+# Plan de evolución a plataforma Fintech Educativa + CRM + Turnos Inteligentes
 
-Conservo 100% el diseño actual del simulador (colores, tipografías, componentes, layout, branding). Solo **extiendo** la app con nuevas secciones y rutas que reutilizan los mismos tokens y componentes shadcn/Tailwind ya en uso.
+El alcance que describes es enorme (equivalente a 2–3 meses de trabajo de un equipo). No se puede entregar todo de una vez sin romper lo que ya funciona. Propongo dividirlo en **5 fases incrementales**, conservando 100% de la lógica actual (simulador, turnos públicos, dashboard admin, auth de los 4 correos).
 
-## 1. Backend — Lovable Cloud
+Importante sobre stack: el proyecto ya corre en **React + Vite + Tailwind + Lovable Cloud (Supabase)**. NO se puede migrar a NestJS/Prisma/PostgreSQL externo dentro de Lovable. Toda la "arquitectura backend" se implementará con **tablas + RLS + funciones SQL + edge functions**, que es el equivalente real y seguro en este entorno. Auth, JWT, RLS, roles y logs ya están cubiertos por Lovable Cloud.
 
-Activar Lovable Cloud (Supabase administrado, sin cuenta externa) y crear:
+---
 
-- **turnos**: id, nombre, telefono, correo, tipificacion, estado (`pendiente|en_proceso|finalizado|cancelado`), prioridad (`alta|media|baja`), simulacion_valor, asesor_id, tiempo_espera, created_at, updated_at.
-- **analytics**: id, evento, pagina, metadata jsonb, dispositivo, navegador, sistema_operativo, session_id, created_at.
-- **asesores**: id, nombre, correo unique, estado, created_at.
-- FK `turnos.asesor_id → asesores.id`.
-- Trigger `updated_at` y trigger que asigna `prioridad` según `tipificacion` (Financiación→alta, Consultas→media, Otros→baja).
-- **RLS**: insert público en `turnos` y `analytics` (la app aún no tiene auth de admin); select restringido. Para el dashboard administrativo, lectura pública temporal con nota clara para endurecer cuando se agregue auth (puedo dejarlo abierto ahora o pedirte que confirmes).
-- Realtime habilitado en `turnos`.
+## Fase 1 — Rebranding visual corporativo (base de todo)
 
-## 2. Arquitectura frontend
+Aplicar paleta oficial en todo el sistema antes de añadir features.
 
-Añadir (sin remover nada):
+- Actualizar `src/index.css` y `tailwind.config.ts`:
+  - `--ciaf-blue: 220 100% 16%` (#001550)
+  - `--ciaf-blue-hover: 217 97% 26%` (#013084)
+  - `--ciaf-light-blue: 200 94% 44%` (#0699d9)
+- Tokens semánticos para: primary, sidebar, badges, estados (pendiente/atención/finalizado), gradientes fintech, glass, shadows.
+- Revisar componentes que usan colores hardcoded y migrar a tokens.
+- Pulir: Segmentacion, Welcome, Dashboard, AdminShell, TurnoForm, TurnosTable, Auth con look fintech (glassmorphism sutil, sombras suaves, microanimaciones framer-motion ya instaladas).
 
-```text
-src/
-├── components/
-│   ├── turnos/TurnoForm.tsx        # integrado bajo el simulador
-│   ├── dashboard/{KpiCards,TurnosTable,Charts,Filters}.tsx
-│   └── layout/AdminShell.tsx
-├── pages/
-│   ├── Dashboard.tsx
-│   ├── Turnos.tsx
-│   └── Analytics.tsx
-├── hooks/{useTurnos,useAnalytics,useRealtime,useTracking}.ts
-├── services/{turnosService,analyticsService}.ts
-├── lib/{validations,formatters,constants}.ts
-└── types/{turno,analytics}.ts
-```
+## Fase 2 — Asesoras + asignación automática por carga
 
-Cliente Supabase: se usa el auto-generado en `src/integrations/supabase/client.ts` (lo crea Cloud). No hardcodeo claves.
+Modelo de datos y lógica de balanceo (el corazón del sistema).
 
-## 3. Funcionalidad #1 — Solicita tu turno
+- Tabla `asesores` ya existe → ampliar con: `hora_inicio`, `hora_fin`, `max_capacidad`, `tiempo_promedio_min`, `is_online`, `estado` (disponible/ocupada/pausa/almuerzo/offline/fin_jornada).
+- Seed: Mariana Pacheco, Juliana Mejía, Elena Cabrera.
+- Función SQL `assign_advisor()`:
+  1. Filtra asesoras `is_online=true`, dentro de horario, estado válido, con cupo.
+  2. Cuenta turnos activos (`pendiente`+`en_proceso`) por asesora.
+  3. Devuelve la de menor carga (desempate por menor tiempo acumulado).
+- Modificar `request_turno()` para llamar `assign_advisor()` y guardar `asesor_id` automáticamente.
+- En el ticket de confirmación mostrar: número de turno, asesora asignada, personas delante, tiempo estimado (`personas * tiempo_promedio`). Si no hay cola, ocultar "personas delante".
+- Modal de confirmación: mínimo 10s, transición elegante, botón "Continuar al simulador".
+- Badge flotante persistente (esquina superior izquierda) con número de turno + asesora + estado, visible durante toda la navegación (sobrevive cambios de ruta via localStorage + contexto).
 
-- Sección nueva debajo del resultado del simulador, usando `Card`, `Input`, `Button`, `Select` y tokens existentes (mismos azules CIAF, mismas sombras y radios).
-- React Hook Form + Zod: nombre ≥3, teléfono ≥10 dígitos, correo válido, tipificación obligatoria.
-- Estados loading/disabled, errores inline, toast (sonner) de éxito/error.
-- Al enviar: insert en `turnos` con `simulacion_valor` tomado del simulador actual (sin tocar sus cálculos, solo leyendo el total).
+## Fase 3 — Programa académico automático por carrera + semestre
 
-## 4. Funcionalidad #2 — Dashboard `/dashboard`
+- Constante `PROGRAMAS_POR_CICLO` con los ciclos propedéuticos que listaste (Admin, Contaduría, SST, Software, Industrial, Enfermería, Veterinaria, Motos, Adm Salud).
+- Helper `getProgramaAcademico(carrera, semestre)` → nombre exacto del programa.
+- Mostrar en TurnoForm (al elegir carrera+semestre), en el ticket, en el dashboard (columna Programa), y enviarlo al simulador como contexto.
 
-- Ruta nueva en `App.tsx`, navegable desde un enlace discreto en el footer del simulador (sin alterar layout).
-- Reutiliza `Card`, `Table`, `Badge`, `Tabs` ya presentes.
-- **KPIs**: total, pendientes, en_proceso, finalizados, por tipificación, tasa conversión (turnos/visitas), tiempo promedio, turnos/hora, turnos/día.
-- **Recharts**: barras (turnos por día), pie (tipificación), línea (tendencia 14 días), heatmap por hora/día (grid con `div`s coloreados con tokens).
-- **Tabla**: filtros (estado, tipificación, fecha), búsqueda (nombre/correo/teléfono), sorting, paginación, badges de estado/prioridad, cambio de estado inline vía `Select`.
-- Suscripción realtime: `useRealtime('turnos')` actualiza cache local en cambios INSERT/UPDATE.
+## Fase 4 — Flujo Financiación con timeline + firma
 
-## 5. Funcionalidad #3 — Analytics
+Cuando tipificación = "Financiación":
 
-- `useTracking()` registra automáticamente: `visita_app`, `simulacion_realizada` (al calcular), `turno_creado`, `dashboard_visitado`. Captura device/browser/OS via `navigator.userAgent` y `session_id` en `sessionStorage`.
-- Página `/analytics`: usuarios diarios, conversión, simulaciones, solicitudes/día, funnel (visita→simulación→turno), dispositivos, páginas, horas pico. Todo con Recharts y tokens CIAF.
+- Tabla `financiaciones`: `turno_id`, `estado` (pendiente/en_revision/aprobado/rechazado/req_documentos/en_firma/finalizado), `firmado` (bool), `firma_fecha`, `observaciones`.
+- Después del simulador, paso de "Estudio de crédito" con datos básicos.
+- Timeline visual del estado.
+- Vista admin: cambiar estado, marcar firma, agregar observaciones.
 
-## 6. UX, performance, responsive
+## Fase 5 — Dashboards premium + realtime + kanban
 
-- Skeleton loaders (`Skeleton`), empty states, toasts sonner, transiciones suaves Tailwind.
-- `React.memo`, `useMemo` en agregados, queries paginadas.
-- Mobile-first; tablas con scroll horizontal en móvil; KPIs en grid responsive.
+- Realtime ya activo en `turnos` → extender a `asesores` y `financiaciones`.
+- Dashboard admin (los 4 correos):
+  - KPIs: turnos hoy, en espera, en atención, tiempo promedio, conversión a financiación, firmas pendientes.
+  - Kanban: Esperando / En atención / Finalizados.
+  - Rendimiento por asesora (gráficos Recharts ya instalados).
+  - Filtros avanzados, búsqueda, exportar.
+- Dashboard personal por asesora (nueva ruta `/asesora`, protegida por rol `asesor`).
 
-## 7. Lo que NO toco
+---
 
-- `CreditSimulator.tsx`: solo añado al final un `<TurnoForm simulacionValor={...} />`. No cambio cálculos, jornadas, validaciones, ni estilos existentes.
-- Branding, colores, tipografía, navbar, layout principal: intactos.
+## Lo que NO se hace (y por qué)
 
-## Detalles técnicos
+- **NestJS / Prisma / Postgres externo / WebSockets propios**: no aplica en Lovable. Se usa Supabase (RLS + Realtime + Edge Functions), que cumple el mismo objetivo de seguridad y escalabilidad.
+- **Rate limiting backend**: el entorno no tiene primitivas estables; se omite (configurable después).
+- **IA de predicción de abandono (Nivel 3)**: fuera de alcance inicial; se puede agregar luego con Lovable AI Gateway.
+- **Login de estudiantes**: confirmaste antes que los turnos son públicos. Se mantiene así. Solo admin/asesoras se loguean.
 
-- Migración SQL única con tablas + enums informales (text + check) + triggers + RLS + publication realtime.
-- Servicios tipados con tipos generados por Cloud (`Database['public']['Tables']`).
-- Sin Redux/MUI/Chakra/Bootstrap/Firebase.
-- Sin `.env` manual: Cloud inyecta `VITE_SUPABASE_*` automáticamente.
+---
 
-## Confirmaciones rápidas antes de construir
+## Pregunta antes de empezar
 
-1. ¿Activo **Lovable Cloud** ahora? (necesario para Supabase, realtime y RLS).
-2. El `/dashboard` quedará **accesible sin login** en esta primera fase (para que puedas usarlo ya). Cuando quieras, agregamos auth + roles. ¿OK?
-3. ¿El enlace al dashboard lo pongo discreto en el footer del simulador, o prefieres que solo sea accesible vía URL directa `/dashboard`?
+¿Arranco por **Fase 1 (rebranding visual)** y **Fase 2 (asesoras + asignación automática + ticket persistente)** en esta iteración? Son las que cambian más la percepción "fintech" y desbloquean el resto. Las fases 3–5 las hacemos en mensajes siguientes para mantener calidad y poder validar cada paso.

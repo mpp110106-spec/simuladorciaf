@@ -245,8 +245,12 @@ export type Database = {
               p_tipificacion: string
             }
             Returns: {
+              asesor_id: string
+              asesor_nombre: string
               id: string
               numero: number
+              personas_delante: number
+              tiempo_estimado_min: number
             }[]
           }
     }

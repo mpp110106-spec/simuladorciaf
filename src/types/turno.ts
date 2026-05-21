@@ -15,6 +15,9 @@ export interface Turno {
   prioridad: TurnoPrioridad | string;
   simulacion_valor: number | null;
   asesor_id: string | null;
+  asesor_nombre?: string | null;
+  personas_delante?: number;
+  tiempo_estimado_min?: number;
   tiempo_espera: number | null;
   created_at: string;
   updated_at: string;
