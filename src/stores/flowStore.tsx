@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState, useCallback, ReactNode } from "react";
 
 export type Modalidad = "sede" | "virtual" | null;
+export type SedeCodigo = "CRAI" | "SEXTA" | null;
 
 export interface DatosEstudiante {
   nombre?: string;
@@ -31,6 +32,8 @@ export interface SimulacionGuardada {
 
 export interface FlowState {
   modalidad: Modalidad;
+  sedeCodigo: SedeCodigo;
+  sedeId: string | null;
   datos: DatosEstudiante;
   turno: TurnoActivo | null;
   financiacionId: string | null;
@@ -40,6 +43,8 @@ export interface FlowState {
 
 const DEFAULT: FlowState = {
   modalidad: null,
+  sedeCodigo: null,
+  sedeId: null,
   datos: {},
   turno: null,
   financiacionId: null,
@@ -70,6 +75,7 @@ function save(s: FlowState) {
 interface FlowContextValue {
   state: FlowState;
   setModalidad: (m: Modalidad) => void;
+  setSede: (codigo: SedeCodigo, id: string | null) => void;
   setDatos: (d: Partial<DatosEstudiante>) => void;
   setTurno: (t: TurnoActivo | null) => void;
   setFinanciacionId: (id: string | null) => void;
@@ -94,6 +100,15 @@ export const FlowProvider = ({ children }: { children: ReactNode }) => {
       ...s,
       modalidad: m,
       pasosCompletados: m ? Array.from(new Set([...s.pasosCompletados, "modalidad"])) : s.pasosCompletados.filter((p) => p !== "modalidad"),
+    }));
+  }, []);
+
+  const setSede = useCallback((codigo: SedeCodigo, id: string | null) => {
+    setState((s) => ({
+      ...s,
+      sedeCodigo: codigo,
+      sedeId: id,
+      pasosCompletados: codigo ? Array.from(new Set([...s.pasosCompletados, "sede"])) : s.pasosCompletados.filter((p) => p !== "sede"),
     }));
   }, []);
 
@@ -152,6 +167,7 @@ export const FlowProvider = ({ children }: { children: ReactNode }) => {
       value={{
         state,
         setModalidad,
+        setSede,
         setDatos,
         setTurno,
         setFinanciacionId,

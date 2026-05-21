@@ -64,6 +64,7 @@ export type Database = {
           nombre: string
           pausa_fin: string | null
           pausa_inicio: string | null
+          sede_id: string | null
           tiempo_promedio_min: number
           user_id: string | null
         }
@@ -80,6 +81,7 @@ export type Database = {
           nombre: string
           pausa_fin?: string | null
           pausa_inicio?: string | null
+          sede_id?: string | null
           tiempo_promedio_min?: number
           user_id?: string | null
         }
@@ -96,10 +98,86 @@ export type Database = {
           nombre?: string
           pausa_fin?: string | null
           pausa_inicio?: string | null
+          sede_id?: string | null
           tiempo_promedio_min?: number
           user_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "asesores_sede_id_fkey"
+            columns: ["sede_id"]
+            isOneToOne: false
+            referencedRelation: "sedes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      encuestas_satisfaccion: {
+        Row: {
+          asesor_id: string | null
+          atencion_score: number | null
+          comentario: string | null
+          created_at: string
+          id: string
+          proceso_financiero_score: number | null
+          rating: number
+          recomendaria_score: number | null
+          resolvio_dudas: boolean | null
+          sede_id: string | null
+          tiempo_espera_score: number | null
+          turno_id: string
+        }
+        Insert: {
+          asesor_id?: string | null
+          atencion_score?: number | null
+          comentario?: string | null
+          created_at?: string
+          id?: string
+          proceso_financiero_score?: number | null
+          rating: number
+          recomendaria_score?: number | null
+          resolvio_dudas?: boolean | null
+          sede_id?: string | null
+          tiempo_espera_score?: number | null
+          turno_id: string
+        }
+        Update: {
+          asesor_id?: string | null
+          atencion_score?: number | null
+          comentario?: string | null
+          created_at?: string
+          id?: string
+          proceso_financiero_score?: number | null
+          rating?: number
+          recomendaria_score?: number | null
+          resolvio_dudas?: boolean | null
+          sede_id?: string | null
+          tiempo_espera_score?: number | null
+          turno_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "encuestas_satisfaccion_asesor_id_fkey"
+            columns: ["asesor_id"]
+            isOneToOne: false
+            referencedRelation: "asesores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "encuestas_satisfaccion_sede_id_fkey"
+            columns: ["sede_id"]
+            isOneToOne: false
+            referencedRelation: "sedes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "encuestas_satisfaccion_turno_id_fkey"
+            columns: ["turno_id"]
+            isOneToOne: true
+            referencedRelation: "turnos"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       financiaciones: {
         Row: {
@@ -167,6 +245,30 @@ export type Database = {
         }
         Relationships: []
       }
+      sedes: {
+        Row: {
+          activa: boolean
+          codigo: string
+          created_at: string
+          id: string
+          nombre: string
+        }
+        Insert: {
+          activa?: boolean
+          codigo: string
+          created_at?: string
+          id?: string
+          nombre: string
+        }
+        Update: {
+          activa?: boolean
+          codigo?: string
+          created_at?: string
+          id?: string
+          nombre?: string
+        }
+        Relationships: []
+      }
       turno_diario_counters: {
         Row: {
           created_at: string
@@ -203,6 +305,7 @@ export type Database = {
           observaciones: string | null
           pausado_at: string | null
           prioridad: string
+          sede_id: string | null
           semestre: number | null
           simulacion_valor: number | null
           telefono: string
@@ -225,6 +328,7 @@ export type Database = {
           observaciones?: string | null
           pausado_at?: string | null
           prioridad?: string
+          sede_id?: string | null
           semestre?: number | null
           simulacion_valor?: number | null
           telefono: string
@@ -247,6 +351,7 @@ export type Database = {
           observaciones?: string | null
           pausado_at?: string | null
           prioridad?: string
+          sede_id?: string | null
           semestre?: number | null
           simulacion_valor?: number | null
           telefono?: string
@@ -261,6 +366,13 @@ export type Database = {
             columns: ["asesor_id"]
             isOneToOne: false
             referencedRelation: "asesores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "turnos_sede_id_fkey"
+            columns: ["sede_id"]
+            isOneToOne: false
+            referencedRelation: "sedes"
             referencedColumns: ["id"]
           },
         ]
@@ -291,7 +403,17 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      assign_advisor: { Args: never; Returns: string }
+      admin_asesoras_resumen: { Args: never; Returns: Json }
+      admin_kpis_globales: { Args: never; Returns: Json }
+      admin_satisfaccion_resumen: { Args: never; Returns: Json }
+      admin_sedes_resumen: { Args: never; Returns: Json }
+      admin_set_sede_asesora: {
+        Args: { p_asesor_id: string; p_sede_id: string }
+        Returns: undefined
+      }
+      assign_advisor:
+        | { Args: never; Returns: string }
+        | { Args: { p_sede_id?: string }; Returns: string }
       call_next_turno: { Args: never; Returns: string }
       finish_atencion: {
         Args: { p_observaciones?: string; p_turno_id: string }
@@ -354,6 +476,26 @@ export type Database = {
               tiempo_estimado_min: number
             }[]
           }
+        | {
+            Args: {
+              p_carrera?: string
+              p_correo: string
+              p_nombre: string
+              p_sede_id?: string
+              p_semestre?: number
+              p_simulacion_valor?: number
+              p_telefono: string
+              p_tipificacion: string
+            }
+            Returns: {
+              asesor_id: string
+              asesor_nombre: string
+              id: string
+              numero: number
+              personas_delante: number
+              tiempo_estimado_min: number
+            }[]
+          }
       set_asesor_estado: {
         Args: { p_estado: Database["public"]["Enums"]["asesor_estado"] }
         Returns: undefined
@@ -361,7 +503,7 @@ export type Database = {
       start_atencion: { Args: { p_turno_id: string }; Returns: undefined }
     }
     Enums: {
-      app_role: "admin" | "colaborador"
+      app_role: "admin" | "colaborador" | "superadmin"
       asesor_estado:
         | "disponible"
         | "ocupada"
@@ -505,7 +647,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["admin", "colaborador"],
+      app_role: ["admin", "colaborador", "superadmin"],
       asesor_estado: [
         "disponible",
         "ocupada",

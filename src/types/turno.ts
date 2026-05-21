@@ -32,4 +32,5 @@ export interface TurnoInsert {
   carrera: string;
   semestre: number;
   simulacion_valor?: number | null;
+  sede_id?: string | null;
 }

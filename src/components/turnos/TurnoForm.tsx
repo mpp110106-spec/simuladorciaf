@@ -23,6 +23,8 @@ import { useTracking } from "@/hooks/useTracking";
 import { getProgramaAcademico, getNivelAcademico } from "@/lib/programas";
 import { useFlow } from "@/stores/flowStore";
 import { useEffect } from "react";
+import SedeSelector from "@/components/turnos/SedeSelector";
+import { toast as sonnerToast } from "sonner";
 
 interface TurnoFormProps {
   simulacionValor?: number | null;
@@ -85,6 +87,10 @@ const TurnoForm = ({ simulacionValor, onSuccess }: TurnoFormProps) => {
   }, [nombreW, telefonoW, correoW, tipificacion, carrera, semestre, setDatos]);
 
   const onSubmit = async (data: TurnoFormData) => {
+    if (!flowState.sedeId) {
+      sonnerToast.error("Selecciona tu sede antes de continuar");
+      return;
+    }
     setSubmitting(true);
     try {
       const turno = await turnosService.create({
@@ -95,6 +101,7 @@ const TurnoForm = ({ simulacionValor, onSuccess }: TurnoFormProps) => {
         carrera: data.carrera,
         semestre: data.semestre,
         simulacion_valor: simulacionValor ?? null,
+        sede_id: flowState.sedeId,
       });
       track("turno_creado", { tipificacion: data.tipificacion, turno_id: turno.id });
       const numeroFmt = String(turno.numero ?? 0).padStart(3, "0");
@@ -167,6 +174,9 @@ const TurnoForm = ({ simulacionValor, onSuccess }: TurnoFormProps) => {
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit(onSubmit)} className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="md:col-span-2">
+            <SedeSelector />
+          </div>
           <div className="space-y-2">
             <Label htmlFor="t-nombre" className="flex items-center gap-2 text-foreground font-medium">
               <User className="w-4 h-4 text-ciaf-blue" /> Nombre completo
