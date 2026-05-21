@@ -13,8 +13,10 @@ import Dashboard from "./pages/Dashboard";
 import Turnos from "./pages/Turnos";
 import Analytics from "./pages/Analytics";
 import FinanciacionPage from "./pages/Financiacion";
+import Operacion from "./pages/Operacion";
 import { AuthProvider } from "./contexts/AuthContext";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
+import AsesoraRoute from "./components/auth/AsesoraRoute";
 import PersistentTurnoBadge from "./components/turnos/PersistentTurnoBadge";
 import { FlowProvider } from "./stores/flowStore";
 import WizardStepper from "./components/wizard/WizardStepper";
@@ -38,6 +40,7 @@ const App = () => (
               <Route path="/simulador" element={<Index />} />
               <Route path="/financiacion" element={<FinanciacionPage />} />
               <Route path="/auth" element={<Auth />} />
+              <Route path="/operacion" element={<AsesoraRoute><Operacion /></AsesoraRoute>} />
               <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
               <Route path="/turnos" element={<ProtectedRoute><Turnos /></ProtectedRoute>} />
               <Route path="/analytics" element={<ProtectedRoute><Analytics /></ProtectedRoute>} />

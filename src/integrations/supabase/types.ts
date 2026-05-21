@@ -55,37 +55,49 @@ export type Database = {
           correo: string
           created_at: string
           estado: string
+          estado_op: Database["public"]["Enums"]["asesor_estado"]
           hora_fin: string
           hora_inicio: string
           id: string
           is_online: boolean
           max_capacidad: number
           nombre: string
+          pausa_fin: string | null
+          pausa_inicio: string | null
           tiempo_promedio_min: number
+          user_id: string | null
         }
         Insert: {
           correo: string
           created_at?: string
           estado?: string
+          estado_op?: Database["public"]["Enums"]["asesor_estado"]
           hora_fin?: string
           hora_inicio?: string
           id?: string
           is_online?: boolean
           max_capacidad?: number
           nombre: string
+          pausa_fin?: string | null
+          pausa_inicio?: string | null
           tiempo_promedio_min?: number
+          user_id?: string | null
         }
         Update: {
           correo?: string
           created_at?: string
           estado?: string
+          estado_op?: Database["public"]["Enums"]["asesor_estado"]
           hora_fin?: string
           hora_inicio?: string
           id?: string
           is_online?: boolean
           max_capacidad?: number
           nombre?: string
+          pausa_fin?: string | null
+          pausa_inicio?: string | null
           tiempo_promedio_min?: number
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -179,6 +191,8 @@ export type Database = {
       turnos: {
         Row: {
           asesor_id: string | null
+          atencion_fin: string | null
+          atencion_inicio: string | null
           carrera: string | null
           correo: string | null
           created_at: string
@@ -186,6 +200,8 @@ export type Database = {
           id: string
           nombre: string
           numero: number
+          observaciones: string | null
+          pausado_at: string | null
           prioridad: string
           semestre: number | null
           simulacion_valor: number | null
@@ -197,6 +213,8 @@ export type Database = {
         }
         Insert: {
           asesor_id?: string | null
+          atencion_fin?: string | null
+          atencion_inicio?: string | null
           carrera?: string | null
           correo?: string | null
           created_at?: string
@@ -204,6 +222,8 @@ export type Database = {
           id?: string
           nombre: string
           numero?: number
+          observaciones?: string | null
+          pausado_at?: string | null
           prioridad?: string
           semestre?: number | null
           simulacion_valor?: number | null
@@ -215,6 +235,8 @@ export type Database = {
         }
         Update: {
           asesor_id?: string | null
+          atencion_fin?: string | null
+          atencion_inicio?: string | null
           carrera?: string | null
           correo?: string | null
           created_at?: string
@@ -222,6 +244,8 @@ export type Database = {
           id?: string
           nombre?: string
           numero?: number
+          observaciones?: string | null
+          pausado_at?: string | null
           prioridad?: string
           semestre?: number | null
           simulacion_valor?: number | null
@@ -268,6 +292,11 @@ export type Database = {
     }
     Functions: {
       assign_advisor: { Args: never; Returns: string }
+      call_next_turno: { Args: never; Returns: string }
+      finish_atencion: {
+        Args: { p_observaciones?: string; p_turno_id: string }
+        Returns: undefined
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -275,6 +304,9 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_asesora: { Args: never; Returns: boolean }
+      is_my_turno: { Args: { _turno_id: string }; Returns: boolean }
+      reassign_pending: { Args: { p_asesor_id: string }; Returns: number }
       request_turno:
         | {
             Args: {
@@ -308,9 +340,22 @@ export type Database = {
               tiempo_estimado_min: number
             }[]
           }
+      set_asesor_estado: {
+        Args: { p_estado: Database["public"]["Enums"]["asesor_estado"] }
+        Returns: undefined
+      }
+      start_atencion: { Args: { p_turno_id: string }; Returns: undefined }
     }
     Enums: {
       app_role: "admin" | "colaborador"
+      asesor_estado:
+        | "disponible"
+        | "ocupada"
+        | "en_llamada"
+        | "en_pausa"
+        | "almuerzo"
+        | "offline"
+        | "jornada_finalizada"
       financiacion_estado:
         | "pendiente"
         | "en_revision"
@@ -447,6 +492,15 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "colaborador"],
+      asesor_estado: [
+        "disponible",
+        "ocupada",
+        "en_llamada",
+        "en_pausa",
+        "almuerzo",
+        "offline",
+        "jornada_finalizada",
+      ],
       financiacion_estado: [
         "pendiente",
         "en_revision",

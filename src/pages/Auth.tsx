@@ -30,9 +30,13 @@ const Auth = () => {
   const from = (location.state as { from?: string } | null)?.from || "/dashboard";
 
   useEffect(() => {
-    if (!authLoading && user) {
-      navigate(isAdmin ? from : "/", { replace: true });
-    }
+    if (authLoading || !user) return;
+    // Si es asesora vinculada, mandar a /operacion
+    supabase.from("asesores").select("id").eq("user_id", user.id).maybeSingle()
+      .then(({ data }) => {
+        if (data) navigate("/operacion", { replace: true });
+        else navigate(isAdmin ? from : "/", { replace: true });
+      });
   }, [user, isAdmin, authLoading, from, navigate]);
 
   const handleLogin = async (e: React.FormEvent) => {
