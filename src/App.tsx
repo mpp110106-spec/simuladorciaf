@@ -16,6 +16,8 @@ import FinanciacionPage from "./pages/Financiacion";
 import { AuthProvider } from "./contexts/AuthContext";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
 import PersistentTurnoBadge from "./components/turnos/PersistentTurnoBadge";
+import { FlowProvider } from "./stores/flowStore";
+import WizardStepper from "./components/wizard/WizardStepper";
 
 const queryClient = new QueryClient();
 
@@ -27,8 +29,10 @@ const App = () => (
         <Sonner position="top-center" richColors />
         <BrowserRouter>
           <AuthProvider>
-            <PersistentTurnoBadge />
-            <Routes>
+            <FlowProvider>
+              <WizardStepper />
+              <PersistentTurnoBadge />
+              <Routes>
               <Route path="/" element={<Segmentacion />} />
               <Route path="/sede" element={<Welcome />} />
               <Route path="/simulador" element={<Index />} />
@@ -38,7 +42,8 @@ const App = () => (
               <Route path="/turnos" element={<ProtectedRoute><Turnos /></ProtectedRoute>} />
               <Route path="/analytics" element={<ProtectedRoute><Analytics /></ProtectedRoute>} />
               <Route path="*" element={<NotFound />} />
-            </Routes>
+              </Routes>
+            </FlowProvider>
           </AuthProvider>
         </BrowserRouter>
       </TooltipProvider>

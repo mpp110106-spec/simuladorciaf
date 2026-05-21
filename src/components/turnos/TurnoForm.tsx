@@ -21,6 +21,8 @@ import { TIPIFICACIONES, CARRERAS, SEMESTRES } from "@/lib/constants";
 import { turnosService } from "@/services/turnosService";
 import { useTracking } from "@/hooks/useTracking";
 import { getProgramaAcademico, getNivelAcademico } from "@/lib/programas";
+import { useFlow } from "@/stores/flowStore";
+import { useEffect } from "react";
 
 interface TurnoFormProps {
   simulacionValor?: number | null;
@@ -41,6 +43,7 @@ const TurnoForm = ({ simulacionValor, onSuccess }: TurnoFormProps) => {
   const [submitting, setSubmitting] = useState(false);
   const [done, setDone] = useState(false);
   const { track } = useTracking();
+  const { state: flowState, setDatos } = useFlow();
 
   const {
     register,
@@ -53,18 +56,33 @@ const TurnoForm = ({ simulacionValor, onSuccess }: TurnoFormProps) => {
     resolver: zodResolver(turnoSchema),
     mode: "onBlur",
     defaultValues: {
-      nombre: "",
-      telefono: "",
-      correo: "",
-      tipificacion: undefined as unknown as TurnoFormData["tipificacion"],
-      carrera: undefined as unknown as string,
-      semestre: undefined as unknown as number,
+      nombre: flowState.datos.nombre ?? "",
+      telefono: flowState.datos.telefono ?? "",
+      correo: flowState.datos.correo ?? "",
+      tipificacion: (flowState.datos.tipificacion ?? undefined) as unknown as TurnoFormData["tipificacion"],
+      carrera: (flowState.datos.carrera ?? undefined) as unknown as string,
+      semestre: (flowState.datos.semestre ?? undefined) as unknown as number,
     },
   });
 
   const tipificacion = watch("tipificacion");
   const carrera = watch("carrera");
   const semestre = watch("semestre");
+  const nombreW = watch("nombre");
+  const telefonoW = watch("telefono");
+  const correoW = watch("correo");
+
+  // Persistir cambios en el store para no perderlos al navegar
+  useEffect(() => {
+    setDatos({
+      nombre: nombreW,
+      telefono: telefonoW,
+      correo: correoW,
+      tipificacion,
+      carrera,
+      semestre,
+    });
+  }, [nombreW, telefonoW, correoW, tipificacion, carrera, semestre, setDatos]);
 
   const onSubmit = async (data: TurnoFormData) => {
     setSubmitting(true);
@@ -86,7 +104,7 @@ const TurnoForm = ({ simulacionValor, onSuccess }: TurnoFormProps) => {
           ? `Tu asesora asignada: ${turno.asesor_nombre}.`
           : "Guarda tu número de turno. Un asesor CIAF te contactará pronto.",
       });
-      reset();
+      // NO reseteamos: conservamos los datos en caso de que el estudiante quiera editarlos
       if (onSuccess) {
         onSuccess({
           id: turno.id,

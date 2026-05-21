@@ -4,12 +4,13 @@ import { Helmet } from "react-helmet-async";
 import { Button } from "@/components/ui/button";
 import TurnoForm from "@/components/turnos/TurnoForm";
 import logoCiaf from "@/assets/logo-ciaf-azul.png";
-import { ArrowRight, Ticket, Lock, UserCircle2, Clock3, Users, GraduationCap, FileSignature } from "lucide-react";
+import { ArrowRight, Ticket, Lock, UserCircle2, Clock3, Users, GraduationCap, FileSignature, Globe, RotateCcw } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { usePageView } from "@/hooks/useTracking";
 import { saveActiveTurno } from "@/hooks/useActiveTurno";
 import { financiacionesService } from "@/services/financiacionesService";
 import { toast } from "sonner";
+import { useFlow } from "@/stores/flowStore";
 
 interface TicketData {
   numero: number;
@@ -24,6 +25,7 @@ interface TicketData {
 const Welcome = () => {
   const navigate = useNavigate();
   usePageView("bienvenida_visitada");
+  const { state: flow, setTurno, setFinanciacionId, setModalidad, resetTurno } = useFlow();
   const [ticket, setTicket] = useState<TicketData | null>(null);
   const [countdown, setCountdown] = useState(10);
 
@@ -34,6 +36,7 @@ const Welcome = () => {
         const fin = await financiacionesService.createForTurno({ turno_id: turno.id });
         financiacion_id = fin.id;
         localStorage.setItem("ciaf_financiacion_id", fin.id);
+        setFinanciacionId(fin.id);
       } catch (e) {
         console.error("No se pudo iniciar el estudio de crédito", e);
         toast.error("No pudimos iniciar el estudio de crédito automáticamente.");
@@ -41,6 +44,14 @@ const Welcome = () => {
     }
     setTicket({ ...turno, financiacion_id });
     setCountdown(10);
+    setTurno({
+      id: turno.id,
+      numero: turno.numero,
+      asesor_nombre: turno.asesor_nombre ?? null,
+      personas_delante: turno.personas_delante ?? 0,
+      tiempo_estimado_min: turno.tiempo_estimado_min ?? 0,
+      programa: turno.programa ?? null,
+    });
     saveActiveTurno({
       numero: turno.numero,
       asesor_nombre: turno.asesor_nombre ?? null,
@@ -77,6 +88,34 @@ const Welcome = () => {
               Para brindarte una atención personalizada, solicita tu turno antes de continuar al simulador de créditos.
             </p>
           </header>
+
+          {/* Acciones de flujo: cambiar a virtual o re-solicitar turno */}
+          <div className="mb-4 flex flex-wrap items-center justify-center gap-2 text-xs">
+            <button
+              type="button"
+              onClick={() => {
+                setModalidad("virtual");
+                navigate("/simulador");
+              }}
+              className="inline-flex items-center gap-1.5 rounded-full border border-ciaf-blue/20 bg-white/70 px-3 py-1.5 font-medium text-ciaf-blue transition-all hover:bg-ciaf-blue hover:text-white"
+            >
+              <Globe className="h-3.5 w-3.5" />
+              ¿Prefieres continuar virtual? Cambiar modalidad
+            </button>
+            {flow.turno && (
+              <button
+                type="button"
+                onClick={() => {
+                  resetTurno();
+                  toast.info("Turno descartado", { description: "Puedes solicitar uno nuevo." });
+                }}
+                className="inline-flex items-center gap-1.5 rounded-full border border-amber-500/40 bg-amber-50 px-3 py-1.5 font-medium text-amber-700 transition-all hover:bg-amber-100"
+              >
+                <RotateCcw className="h-3.5 w-3.5" />
+                Cancelar turno actual y pedir otro
+              </button>
+            )}
+          </div>
 
           <TurnoForm onSuccess={handleSuccess} />
 
