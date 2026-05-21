@@ -223,25 +223,8 @@ const Welcome = () => {
                   )}
                 </div>
 
-                <div className="flex flex-col sm:flex-row gap-2">
-                  <Button
-                    onClick={() => navigate("/simulador")}
-                    className="flex-1 bg-white text-ciaf-blue hover:bg-white/90 font-semibold"
-                  >
-                    Continuar al simulador <ArrowRight className="w-4 h-4 ml-1" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    onClick={() => setTicket(null)}
-                    disabled={countdown > 0}
-                    className="text-white hover:bg-white/15 disabled:opacity-60"
-                  >
-                    {countdown > 0 ? `Cerrar (${countdown}s)` : "Cerrar"}
-                  </Button>
-                </div>
-
-                {ticket.financiacion_id && (
-                  <div className="space-y-2">
+                <div className="space-y-2">
+                  {ticket.financiacion_id && (
                     <a
                       href="https://ciaf.digital/inscribete/"
                       target="_blank"
@@ -252,15 +235,24 @@ const Welcome = () => {
                       Completar formulario de crédito
                       <ArrowRight className="w-4 h-4" />
                     </a>
+                  )}
+                  <div className="flex flex-col sm:flex-row gap-2">
+                    <Button
+                      onClick={() => navigate("/simulador")}
+                      className="flex-1 bg-white/15 text-white hover:bg-white/25 font-semibold border border-white/20"
+                    >
+                      Continuar al simulador <ArrowRight className="w-4 h-4 ml-1" />
+                    </Button>
                     <Button
                       variant="ghost"
-                      onClick={() => navigate("/financiacion")}
-                      className="w-full text-white hover:bg-white/15 border border-white/20"
+                      onClick={() => setTicket(null)}
+                      disabled={countdown > 0}
+                      className="text-white hover:bg-white/15 disabled:opacity-60"
                     >
-                      Seguir mi estudio de crédito
+                      {countdown > 0 ? `Cerrar (${countdown}s)` : "Cerrar"}
                     </Button>
                   </div>
-                )}
+                </div>
 
                 <p className="text-[11px] text-center opacity-70">
                   Tu número de turno permanecerá visible mientras navegas.
