@@ -177,20 +177,30 @@ const getSemestresDisponibles = (programa: string): number[] => {
   return Object.keys(PRECIOS_MATRICULA_2026[programa]).map(Number).sort((a, b) => a - b);
 };
 
-// Función que retorna el precio correcto según la jornada
-// A partir de 2026-I: TODAS las jornadas usan matrícula extraordinaria
+// Fechas de matrícula 2026-I (zona horaria Colombia)
+// Ordinaria
+//   Diurna y Nocturna: 15/06/2026 - 25/07/2026
+//   Sabatina y Fines de semana: 04/07/2026 - 25/07/2026
+//   (pagos antes de estas fechas también se consideran ordinaria)
+// Extraordinaria
+//   Diurna y Nocturna: 26/07/2026 - 08/08/2026
+//   Sabatina y Fines de semana: 26/07/2026 - 01/08/2026
+const FECHA_LIMITE_ORDINARIA = new Date("2026-07-25T23:59:59-05:00");
+
+const esTipoExtraordinaria = (_jornada: TipoJornada, hoy: Date = new Date()): boolean => {
+  return hoy.getTime() > FECHA_LIMITE_ORDINARIA.getTime();
+};
+
+// Función que retorna el precio correcto según la jornada y la fecha actual
 const getPrecioMatricula = (programa: string, semestre: number, jornada: TipoJornada): number | null => {
   if (!programa || !PRECIOS_MATRICULA_2026[programa]) return null;
   const precios = PRECIOS_MATRICULA_2026[programa][semestre];
   if (!precios) return null;
-  
-  // REGLA 2026-I: Todas las jornadas ahora aplican matrícula extraordinaria
-  return precios.extraordinaria;
+  return esTipoExtraordinaria(jornada) ? precios.extraordinaria : precios.ordinaria;
 };
 
-// Ya no hay jornadas con matrícula ordinaria a partir de 2026-I
 const esJornadaOrdinaria = (jornada: TipoJornada): boolean => {
-  return false;
+  return !esTipoExtraordinaria(jornada);
 };
 
 const PORCENTAJES_CUOTA_INICIAL = [10, 20, 30, 40, 50];
