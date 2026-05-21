@@ -1,7 +1,11 @@
+import { useState } from "react";
 import { motion } from "framer-motion";
-import { Ticket, UserCircle2, Users, Clock3, CheckCircle2, Loader2, Sparkles } from "lucide-react";
+import { Ticket, UserCircle2, Users, Clock3, CheckCircle2, Loader2, Sparkles, Star } from "lucide-react";
 import { useTurnoLive } from "@/hooks/useTurnoLive";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Button } from "@/components/ui/button";
+import EncuestaSatisfaccion from "@/components/encuesta/EncuestaSatisfaccion";
+import { encuestaService } from "@/services/adminService";
 
 const ESTADO_META: Record<string, { label: string; color: string; icon: typeof Ticket }> = {
   pendiente: { label: "En espera", color: "bg-amber-400", icon: Clock3 },
@@ -16,6 +20,8 @@ interface Props {
 
 const MiTurnoCard = ({ turnoId }: Props) => {
   const { data, loading } = useTurnoLive(turnoId);
+  const [showEncuesta, setShowEncuesta] = useState(false);
+  const yaEnviada = encuestaService.existeParaTurno(turnoId);
 
   if (loading) {
     return <Skeleton className="h-44 rounded-3xl" />;
@@ -101,12 +107,20 @@ const MiTurnoCard = ({ turnoId }: Props) => {
         )}
 
         {data.estado === "finalizado" && (
-          <div className="flex items-center gap-2 rounded-xl bg-white/10 ring-1 ring-white/15 p-3">
-            <CheckCircle2 className="w-4 h-4" />
-            <p className="text-sm font-medium">Atención finalizada. ¡Gracias por confiar en CIAF!</p>
+          <div className="space-y-2">
+            <div className="flex items-center gap-2 rounded-xl bg-white/10 ring-1 ring-white/15 p-3">
+              <CheckCircle2 className="w-4 h-4" />
+              <p className="text-sm font-medium">Atención finalizada. ¡Gracias por confiar en CIAF!</p>
+            </div>
+            {!yaEnviada && (
+              <Button onClick={() => setShowEncuesta(true)} className="w-full bg-white text-ciaf-blue hover:bg-white/90 font-semibold">
+                <Star className="w-4 h-4 mr-1.5 fill-amber-400 text-amber-400" /> Califica tu experiencia
+              </Button>
+            )}
           </div>
         )}
       </div>
+      <EncuestaSatisfaccion open={showEncuesta} turnoId={turnoId} asesora={data.asesor_nombre} onClose={() => setShowEncuesta(false)} />
     </motion.div>
   );
 };
