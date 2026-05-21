@@ -12,6 +12,7 @@ import NotFound from "./pages/NotFound";
 import Dashboard from "./pages/Dashboard";
 import Turnos from "./pages/Turnos";
 import Analytics from "./pages/Analytics";
+import FinanciacionPage from "./pages/Financiacion";
 import { AuthProvider } from "./contexts/AuthContext";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
 import PersistentTurnoBadge from "./components/turnos/PersistentTurnoBadge";
@@ -31,6 +32,7 @@ const App = () => (
               <Route path="/" element={<Segmentacion />} />
               <Route path="/sede" element={<Welcome />} />
               <Route path="/simulador" element={<Index />} />
+              <Route path="/financiacion" element={<FinanciacionPage />} />
               <Route path="/auth" element={<Auth />} />
               <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
               <Route path="/turnos" element={<ProtectedRoute><Turnos /></ProtectedRoute>} />
