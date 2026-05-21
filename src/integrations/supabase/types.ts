@@ -66,6 +66,7 @@ export type Database = {
           pausa_fin: string | null
           pausa_inicio: string | null
           sede_id: string | null
+          soft_capacidad: number
           tiempo_promedio_min: number
           user_id: string | null
         }
@@ -84,6 +85,7 @@ export type Database = {
           pausa_fin?: string | null
           pausa_inicio?: string | null
           sede_id?: string | null
+          soft_capacidad?: number
           tiempo_promedio_min?: number
           user_id?: string | null
         }
@@ -102,6 +104,7 @@ export type Database = {
           pausa_fin?: string | null
           pausa_inicio?: string | null
           sede_id?: string | null
+          soft_capacidad?: number
           tiempo_promedio_min?: number
           user_id?: string | null
         }
@@ -340,11 +343,15 @@ export type Database = {
           asesor_id: string | null
           atencion_fin: string | null
           atencion_inicio: string | null
+          auto_cancelado: boolean
           carrera: string | null
           correo: string | null
           created_at: string
           estado: string
           id: string
+          idempotency_key: string | null
+          is_cross_branch: boolean
+          last_activity_at: string
           nombre: string
           numero: number
           observaciones: string | null
@@ -363,11 +370,15 @@ export type Database = {
           asesor_id?: string | null
           atencion_fin?: string | null
           atencion_inicio?: string | null
+          auto_cancelado?: boolean
           carrera?: string | null
           correo?: string | null
           created_at?: string
           estado?: string
           id?: string
+          idempotency_key?: string | null
+          is_cross_branch?: boolean
+          last_activity_at?: string
           nombre: string
           numero?: number
           observaciones?: string | null
@@ -386,11 +397,15 @@ export type Database = {
           asesor_id?: string | null
           atencion_fin?: string | null
           atencion_inicio?: string | null
+          auto_cancelado?: boolean
           carrera?: string | null
           correo?: string | null
           created_at?: string
           estado?: string
           id?: string
+          idempotency_key?: string | null
+          is_cross_branch?: boolean
+          last_activity_at?: string
           nombre?: string
           numero?: number
           observaciones?: string | null
@@ -450,6 +465,7 @@ export type Database = {
     Functions: {
       admin_asesoras_resumen: { Args: never; Returns: Json }
       admin_kpis_globales: { Args: never; Returns: Json }
+      admin_metricas_operativas: { Args: never; Returns: Json }
       admin_satisfaccion_resumen: { Args: never; Returns: Json }
       admin_sedes_resumen: { Args: never; Returns: Json }
       admin_set_sede_asesora: {
@@ -460,6 +476,7 @@ export type Database = {
       asesor_heartbeat: { Args: never; Returns: undefined }
       assign_advisor: { Args: { p_sede_id?: string }; Returns: string }
       call_next_turno: { Args: never; Returns: string }
+      cleanup_abandoned_turnos: { Args: never; Returns: Json }
       finish_atencion: {
         Args: { p_observaciones?: string; p_turno_id: string }
         Returns: undefined
@@ -473,6 +490,7 @@ export type Database = {
           atencion_inicio: string
           estado: string
           id: string
+          is_cross_branch: boolean
           numero: number
           personas_delante: number
           tiempo_estimado_min: number
@@ -536,6 +554,29 @@ export type Database = {
               asesor_id: string
               asesor_nombre: string
               id: string
+              numero: number
+              personas_delante: number
+              tiempo_estimado_min: number
+            }[]
+          }
+        | {
+            Args: {
+              p_carrera?: string
+              p_correo: string
+              p_idempotency_key?: string
+              p_nombre: string
+              p_sede_id?: string
+              p_semestre?: number
+              p_simulacion_valor?: number
+              p_telefono: string
+              p_tipificacion: string
+            }
+            Returns: {
+              alerta_saturacion: boolean
+              asesor_id: string
+              asesor_nombre: string
+              id: string
+              is_cross_branch: boolean
               numero: number
               personas_delante: number
               tiempo_estimado_min: number
