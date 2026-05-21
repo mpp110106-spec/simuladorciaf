@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { useEffect } from "react";
 import { Helmet } from "react-helmet-async";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
@@ -41,6 +42,26 @@ export default function Operacion() {
   const [finishTarget, setFinishTarget] = useState<Turno | null>(null);
   const [showHorario, setShowHorario] = useState(false);
   const [calling, setCalling] = useState(false);
+
+  // Heartbeat de presencia: cada 30s mientras el panel esté abierto.
+  // Asegura que la asignación automática solo entregue turnos a quien esté realmente conectada.
+  useEffect(() => {
+    if (!asesora) return;
+    let cancelled = false;
+    const beat = () => {
+      if (cancelled || document.visibilityState === "hidden") return;
+      void operacionService.heartbeat();
+    };
+    beat();
+    const iv = window.setInterval(beat, 30000);
+    const onVis = () => beat();
+    document.addEventListener("visibilitychange", onVis);
+    return () => {
+      cancelled = true;
+      window.clearInterval(iv);
+      document.removeEventListener("visibilitychange", onVis);
+    };
+  }, [asesora?.id]);
 
   const stats = useMemo(() => {
     const pendientes = turnos.filter((t) => t.estado === "pendiente");
