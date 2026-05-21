@@ -17,10 +17,10 @@ import {
 } from "@/components/ui/select";
 
 import { turnoSchema, type TurnoFormData } from "@/lib/validations";
-import { TIPIFICACIONES, CARRERAS, SEMESTRES } from "@/lib/constants";
+import { TIPIFICACIONES, CARRERAS } from "@/lib/constants";
 import { turnosService } from "@/services/turnosService";
 import { useTracking } from "@/hooks/useTracking";
-import { getProgramaAcademico, getNivelAcademico } from "@/lib/programas";
+import { getProgramaAcademico, getNivelAcademico, getSemestresDisponibles, getMaxSemestre } from "@/lib/programas";
 import { useFlow } from "@/stores/flowStore";
 import { useEffect } from "react";
 import SedeSelector from "@/components/turnos/SedeSelector";
@@ -85,6 +85,17 @@ const TurnoForm = ({ simulacionValor, onSuccess }: TurnoFormProps) => {
       semestre,
     });
   }, [nombreW, telefonoW, correoW, tipificacion, carrera, semestre, setDatos]);
+
+  // Si cambia la carrera y el semestre actual excede el máximo permitido, reseteamos
+  useEffect(() => {
+    if (!carrera || !semestre) return;
+    const max = getMaxSemestre(carrera);
+    if (semestre > max) {
+      setValue("semestre", undefined as unknown as number, { shouldValidate: false });
+    }
+  }, [carrera, semestre, setValue]);
+
+  const semestresDisponibles = getSemestresDisponibles(carrera);
 
   const onSubmit = async (data: TurnoFormData) => {
     if (!flowState.sedeId) {
@@ -296,7 +307,7 @@ const TurnoForm = ({ simulacionValor, onSuccess }: TurnoFormProps) => {
                 <SelectValue placeholder="Selecciona tu semestre" />
               </SelectTrigger>
               <SelectContent>
-                {SEMESTRES.map((s) => (
+                {semestresDisponibles.map((s) => (
                   <SelectItem key={s} value={String(s)}>{s}° semestre</SelectItem>
                 ))}
               </SelectContent>
@@ -313,7 +324,7 @@ const TurnoForm = ({ simulacionValor, onSuccess }: TurnoFormProps) => {
               </div>
               <div className="flex-1">
                 <p className="text-[11px] uppercase tracking-wider text-ciaf-blue/70 font-semibold">
-                  Programa académico · Nivel {getNivelAcademico(semestre)}
+                  Programa académico · Nivel {getNivelAcademico(semestre, carrera)}
                 </p>
                 <p className="text-sm font-semibold text-ciaf-blue leading-snug mt-0.5">
                   {getProgramaAcademico(carrera, semestre)}
