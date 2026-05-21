@@ -53,6 +53,7 @@ const Welcome = () => {
       programa: turno.programa ?? null,
     });
     saveActiveTurno({
+      id: turno.id,
       numero: turno.numero,
       asesor_nombre: turno.asesor_nombre ?? null,
       personas_delante: turno.personas_delante ?? 0,

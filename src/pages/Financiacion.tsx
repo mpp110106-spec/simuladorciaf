@@ -4,6 +4,8 @@ import { Helmet } from "react-helmet-async";
 import { ArrowLeft, FileSignature, ExternalLink, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import FinanciacionTimeline from "@/components/financiacion/FinanciacionTimeline";
+import MiTurnoCard from "@/components/turnos/MiTurnoCard";
+import { useActiveTurno } from "@/hooks/useActiveTurno";
 import logoCiaf from "@/assets/logo-ciaf-azul.png";
 
 const FORMULARIO_CREDITO_URL = "https://ciaf.digital/inscribete/";
@@ -11,6 +13,7 @@ const FORMULARIO_CREDITO_URL = "https://ciaf.digital/inscribete/";
 const FinanciacionPage = () => {
   const navigate = useNavigate();
   const [id, setId] = useState<string | null>(null);
+  const { turno } = useActiveTurno();
 
   useEffect(() => {
     setId(localStorage.getItem("ciaf_financiacion_id"));
@@ -31,6 +34,12 @@ const FinanciacionPage = () => {
               Aquí puedes seguir el avance de tu solicitud de financiación.
             </p>
           </header>
+
+          {turno?.id && (
+            <div className="mb-6">
+              <MiTurnoCard turnoId={turno.id} />
+            </div>
+          )}
 
           {/* CTA: Formulario oficial de crédito */}
           <a
