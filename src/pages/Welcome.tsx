@@ -240,13 +240,25 @@ const Welcome = () => {
                 </div>
 
                 {ticket.financiacion_id && (
-                  <Button
-                    variant="ghost"
-                    onClick={() => navigate("/financiacion")}
-                    className="w-full text-white hover:bg-white/15 border border-white/20"
-                  >
-                    <FileSignature className="w-4 h-4 mr-1" /> Ver mi estudio de crédito
-                  </Button>
+                  <div className="space-y-2">
+                    <a
+                      href="https://ciaf.digital/inscribete/"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex w-full items-center justify-center gap-2 rounded-md bg-white px-4 py-2.5 text-sm font-semibold text-ciaf-blue shadow-md transition-all hover:bg-white/95 hover:-translate-y-0.5"
+                    >
+                      <FileSignature className="w-4 h-4" />
+                      Completar formulario de crédito
+                      <ArrowRight className="w-4 h-4" />
+                    </a>
+                    <Button
+                      variant="ghost"
+                      onClick={() => navigate("/financiacion")}
+                      className="w-full text-white hover:bg-white/15 border border-white/20"
+                    >
+                      Seguir mi estudio de crédito
+                    </Button>
+                  </div>
                 )}
 
                 <p className="text-[11px] text-center opacity-70">

@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
-import { ArrowLeft, FileSignature } from "lucide-react";
+import { ArrowLeft, FileSignature, ExternalLink, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import FinanciacionTimeline from "@/components/financiacion/FinanciacionTimeline";
 import logoCiaf from "@/assets/logo-ciaf-azul.png";
+
+const FORMULARIO_CREDITO_URL = "https://ciaf.digital/inscribete/";
 
 const FinanciacionPage = () => {
   const navigate = useNavigate();
@@ -29,6 +31,32 @@ const FinanciacionPage = () => {
               Aquí puedes seguir el avance de tu solicitud de financiación.
             </p>
           </header>
+
+          {/* CTA: Formulario oficial de crédito */}
+          <a
+            href={FORMULARIO_CREDITO_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="group mb-6 block overflow-hidden rounded-2xl border border-ciaf-blue/20 bg-gradient-to-br from-ciaf-blue to-ciaf-light-blue p-5 text-white shadow-lg transition-all hover:shadow-xl hover:-translate-y-0.5"
+          >
+            <div className="flex items-center gap-4">
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-white/20 ring-1 ring-white/30">
+                <FileText className="h-6 w-6" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-[10px] font-semibold uppercase tracking-wider opacity-80">
+                  Paso requerido
+                </p>
+                <p className="text-base font-semibold leading-tight">
+                  Completa el formulario oficial de crédito
+                </p>
+                <p className="text-xs opacity-90 mt-0.5">
+                  Diligéncialo para iniciar tu estudio en CIAF Digital.
+                </p>
+              </div>
+              <ExternalLink className="h-5 w-5 shrink-0 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+            </div>
+          </a>
 
           {id ? (
             <FinanciacionTimeline financiacionId={id} />
