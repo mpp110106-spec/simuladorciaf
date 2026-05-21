@@ -339,6 +339,52 @@ export default function Admin() {
                 <Kpi icon={FileSignature} label="Financiero" value={`${satis.global.financiero}/10`} accent="bg-emerald-600" />
                 <Kpi icon={TrendingUp} label="NPS" value={`${satis.global.nps}/10`} accent="bg-[#001550]" />
               </div>
+
+              {/* Satisfacción por asesora */}
+              {satis.por_asesora?.length > 0 && (
+                <Card className="p-4 bg-white/70 backdrop-blur-md border-white/40 mb-4">
+                  <h3 className="text-sm font-bold text-[#001550] mb-3 flex items-center gap-2">
+                    <Users className="w-4 h-4" /> Satisfacción por asesora
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                    {[...satis.por_asesora]
+                      .sort((a: any, b: any) => Number(b.promedio ?? 0) - Number(a.promedio ?? 0))
+                      .map((a: any, idx: number) => {
+                        const score = Number(a.promedio ?? 0);
+                        const pct = Math.round((score / 5) * 100);
+                        const color = score >= 4.5 ? "text-emerald-600" : score >= 3.5 ? "text-amber-500" : score > 0 ? "text-rose-500" : "text-slate-400";
+                        return (
+                          <motion.div key={a.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: idx * 0.04 }}
+                            className="rounded-2xl border border-slate-100 p-4 bg-white hover:shadow-md transition-all">
+                            <div className="flex items-center gap-2 mb-2">
+                              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#001550] to-[#0699d9] flex items-center justify-center text-white text-xs font-bold">
+                                {a.nombre?.split(" ").map((n: string) => n[0]).slice(0, 2).join("")}
+                              </div>
+                              <div className="min-w-0 flex-1">
+                                <p className="font-semibold text-[#001550] text-sm truncate">{a.nombre}</p>
+                                <p className="text-[10px] text-slate-500">{a.total ?? 0} encuestas</p>
+                              </div>
+                              <span className="text-[10px] uppercase tracking-wider font-bold text-slate-400">#{idx + 1}</span>
+                            </div>
+                            <div className="flex items-baseline gap-1 mb-2">
+                              <span className={`text-2xl font-bold tabular-nums ${color}`}>
+                                {score > 0 ? score.toFixed(2) : "—"}
+                              </span>
+                              <span className="text-xs text-slate-400">/5</span>
+                              <div className="ml-auto flex">
+                                {[1, 2, 3, 4, 5].map((n) => (
+                                  <Star key={n} className={`w-3.5 h-3.5 ${n <= Math.round(score) ? "fill-amber-400 text-amber-400" : "text-slate-200"}`} />
+                                ))}
+                              </div>
+                            </div>
+                            <Progress value={pct} className="h-1.5" />
+                          </motion.div>
+                        );
+                      })}
+                  </div>
+                </Card>
+              )}
+
               {satis.comentarios?.length > 0 && (
                 <Card className="p-4 bg-white/70 backdrop-blur-md border-white/40">
                   <h3 className="text-sm font-bold text-[#001550] mb-3">Comentarios recientes</h3>
