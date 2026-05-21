@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { CalendarClock, Loader2, CheckCircle2, User, Phone, Mail, Tag, GraduationCap, BookOpen } from "lucide-react";
+import { CalendarClock, Loader2, CheckCircle2, User, Phone, Mail, Tag, GraduationCap, BookOpen, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -20,6 +20,7 @@ import { turnoSchema, type TurnoFormData } from "@/lib/validations";
 import { TIPIFICACIONES, CARRERAS, SEMESTRES } from "@/lib/constants";
 import { turnosService } from "@/services/turnosService";
 import { useTracking } from "@/hooks/useTracking";
+import { getProgramaAcademico, getNivelAcademico } from "@/lib/programas";
 
 interface TurnoFormProps {
   simulacionValor?: number | null;
@@ -29,6 +30,10 @@ interface TurnoFormProps {
     asesor_nombre?: string | null;
     personas_delante?: number;
     tiempo_estimado_min?: number;
+    tipificacion?: string;
+    carrera?: string;
+    semestre?: number;
+    programa?: string | null;
   }) => void;
 }
 
@@ -89,6 +94,10 @@ const TurnoForm = ({ simulacionValor, onSuccess }: TurnoFormProps) => {
           asesor_nombre: turno.asesor_nombre ?? null,
           personas_delante: turno.personas_delante ?? 0,
           tiempo_estimado_min: turno.tiempo_estimado_min ?? 0,
+          tipificacion: data.tipificacion,
+          carrera: data.carrera,
+          semestre: data.semestre,
+          programa: getProgramaAcademico(data.carrera, data.semestre),
         });
       } else {
         setDone(true);
