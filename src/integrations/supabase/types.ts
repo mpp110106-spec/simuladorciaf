@@ -60,6 +60,7 @@ export type Database = {
           hora_inicio: string
           id: string
           is_online: boolean
+          last_seen_at: string | null
           max_capacidad: number
           nombre: string
           pausa_fin: string | null
@@ -77,6 +78,7 @@ export type Database = {
           hora_inicio?: string
           id?: string
           is_online?: boolean
+          last_seen_at?: string | null
           max_capacidad?: number
           nombre: string
           pausa_fin?: string | null
@@ -94,6 +96,7 @@ export type Database = {
           hora_inicio?: string
           id?: string
           is_online?: boolean
+          last_seen_at?: string | null
           max_capacidad?: number
           nombre?: string
           pausa_fin?: string | null
@@ -412,6 +415,7 @@ export type Database = {
         Returns: undefined
       }
       admin_usuarios_resumen: { Args: never; Returns: Json }
+      asesor_heartbeat: { Args: never; Returns: undefined }
       assign_advisor:
         | { Args: never; Returns: string }
         | { Args: { p_sede_id?: string }; Returns: string }
