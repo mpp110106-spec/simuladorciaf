@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { CalendarClock, Loader2, CheckCircle2, User, Phone, Mail, Tag, GraduationCap, BookOpen, Sparkles } from "lucide-react";
@@ -46,6 +46,12 @@ const TurnoForm = ({ simulacionValor, onSuccess }: TurnoFormProps) => {
   const [done, setDone] = useState(false);
   const { track } = useTracking();
   const { state: flowState, setDatos } = useFlow();
+  // Idempotency key: stable per form mount → protege contra doble submit, refresh y reintentos
+  const idempotencyKeyRef = useRef<string>(
+    (typeof crypto !== "undefined" && "randomUUID" in crypto)
+      ? crypto.randomUUID()
+      : `idem-${Date.now()}-${Math.random().toString(36).slice(2)}`
+  );
 
   const {
     register,
@@ -113,6 +119,7 @@ const TurnoForm = ({ simulacionValor, onSuccess }: TurnoFormProps) => {
         semestre: data.semestre,
         simulacion_valor: simulacionValor ?? null,
         sede_id: flowState.sedeId,
+        idempotency_key: idempotencyKeyRef.current,
       });
       track("turno_creado", { tipificacion: data.tipificacion, turno_id: turno.id });
       const numeroFmt = String(turno.numero ?? 0).padStart(3, "0");

@@ -11,6 +11,7 @@ export interface LiveTurno {
   tiempo_estimado_min: number;
   atencion_inicio: string | null;
   atencion_fin: string | null;
+  is_cross_branch?: boolean;
 }
 
 async function fetchLive(turnoId: string): Promise<LiveTurno | null> {
@@ -27,6 +28,7 @@ async function fetchLive(turnoId: string): Promise<LiveTurno | null> {
     tiempo_estimado_min: row.tiempo_estimado_min ?? 0,
     atencion_inicio: row.atencion_inicio,
     atencion_fin: row.atencion_fin,
+    is_cross_branch: !!row.is_cross_branch,
   };
 }
 
@@ -42,9 +44,9 @@ export function useTurnoLive(turnoId: string | null | undefined) {
     }
     let active = true;
     setLoading(true);
-    fetchLive(turnoId).then((r) => {
+    const refresh = () => fetchLive(turnoId).then((r) => active && setData(r));
+    refresh().then(() => {
       if (active) {
-        setData(r);
         setLoading(false);
       }
     });
@@ -54,14 +56,24 @@ export function useTurnoLive(turnoId: string | null | undefined) {
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "turnos" },
-        () => {
-          fetchLive(turnoId).then((r) => active && setData(r));
-        },
+        () => { refresh(); },
       )
-      .subscribe();
+      .subscribe((status) => {
+        // Re-hydrate state on (re)connect to avoid stale data after socket drops
+        if (status === "SUBSCRIBED") refresh();
+      });
+
+    // Safety net: periodic re-sync every 20s and on tab focus
+    const interval = setInterval(refresh, 20000);
+    const onFocus = () => refresh();
+    window.addEventListener("focus", onFocus);
+    document.addEventListener("visibilitychange", onFocus);
 
     return () => {
       active = false;
+      clearInterval(interval);
+      window.removeEventListener("focus", onFocus);
+      document.removeEventListener("visibilitychange", onFocus);
       supabase.removeChannel(ch);
     };
   }, [turnoId]);
