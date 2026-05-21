@@ -278,6 +278,22 @@ const TurnoForm = ({ simulacionValor, onSuccess }: TurnoFormProps) => {
             )}
           </div>
 
+          {carrera && semestre && (
+            <div className="md:col-span-2 rounded-xl border border-ciaf-blue/20 bg-gradient-to-r from-ciaf-blue/5 to-ciaf-light-blue/10 p-4 flex items-start gap-3">
+              <div className="w-9 h-9 rounded-lg bg-ciaf-blue text-white flex items-center justify-center shrink-0">
+                <Sparkles className="w-4 h-4" />
+              </div>
+              <div className="flex-1">
+                <p className="text-[11px] uppercase tracking-wider text-ciaf-blue/70 font-semibold">
+                  Programa académico · Nivel {getNivelAcademico(semestre)}
+                </p>
+                <p className="text-sm font-semibold text-ciaf-blue leading-snug mt-0.5">
+                  {getProgramaAcademico(carrera, semestre)}
+                </p>
+              </div>
+            </div>
+          )}
+
           <div className="md:col-span-2">
             <Button
               type="submit"
