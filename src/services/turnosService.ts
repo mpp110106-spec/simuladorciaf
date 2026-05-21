@@ -21,6 +21,7 @@ export const turnosService = {
       p_carrera: input.carrera,
       p_semestre: input.semestre,
       p_sede_id: input.sede_id ?? undefined,
+      p_idempotency_key: input.idempotency_key ?? undefined,
     });
     if (error) throw error;
     const turno = data?.[0];

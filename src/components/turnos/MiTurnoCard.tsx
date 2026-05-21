@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Ticket, UserCircle2, Users, Clock3, CheckCircle2, Loader2, Sparkles, Star } from "lucide-react";
+import { Ticket, UserCircle2, Users, Clock3, CheckCircle2, Loader2, Sparkles, Star, MapPin } from "lucide-react";
 import { useTurnoLive } from "@/hooks/useTurnoLive";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
@@ -76,6 +76,15 @@ const MiTurnoCard = ({ turnoId }: Props) => {
               <p className="text-[10px] uppercase tracking-wider opacity-70">Tu asesora</p>
               <p className="text-sm font-semibold">{data.asesor_nombre}</p>
             </div>
+          </div>
+        )}
+
+        {data.is_cross_branch && (
+          <div className="flex items-start gap-2 rounded-xl bg-amber-400/20 ring-1 ring-amber-200/40 p-3 text-xs">
+            <MapPin className="w-4 h-4 mt-0.5 shrink-0" />
+            <p className="leading-snug">
+              <span className="font-semibold">Atención cruzada:</span> tu asesora está en otra sede y te atenderá de forma remota para agilizar tu turno.
+            </p>
           </div>
         )}
 

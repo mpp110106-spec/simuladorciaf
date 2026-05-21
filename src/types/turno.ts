@@ -33,4 +33,5 @@ export interface TurnoInsert {
   semestre: number;
   simulacion_valor?: number | null;
   sede_id?: string | null;
+  idempotency_key?: string;
 }
