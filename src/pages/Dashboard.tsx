@@ -3,6 +3,7 @@ import AdminShell from "@/components/layout/AdminShell";
 import KpiCards from "@/components/dashboard/KpiCards";
 import Charts from "@/components/dashboard/Charts";
 import TurnosTable from "@/components/dashboard/TurnosTable";
+import FinanciacionesPanel from "@/components/dashboard/FinanciacionesPanel";
 import { useTurnos } from "@/hooks/useTurnos";
 import { useAnalytics } from "@/hooks/useAnalytics";
 import { usePageView } from "@/hooks/useTracking";
@@ -23,6 +24,7 @@ const Dashboard = () => {
           <KpiCards turnos={turnos} events={events} />
           <Charts turnos={turnos} />
           <TurnosTable turnos={turnos} loading={loading} onChangeEstado={updateEstado} />
+          <FinanciacionesPanel turnos={turnos} />
         </div>
       </AdminShell>
     </>
