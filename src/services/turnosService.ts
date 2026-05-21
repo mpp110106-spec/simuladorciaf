@@ -20,6 +20,7 @@ export const turnosService = {
       p_simulacion_valor: input.simulacion_valor ?? undefined,
       p_carrera: input.carrera,
       p_semestre: input.semestre,
+      p_sede_id: input.sede_id ?? undefined,
     });
     if (error) throw error;
     const turno = data?.[0];
