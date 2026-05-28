@@ -60,6 +60,7 @@ export type Database = {
           hora_inicio: string
           id: string
           is_online: boolean
+          last_assigned_at: string | null
           last_seen_at: string | null
           max_capacidad: number
           nombre: string
@@ -79,6 +80,7 @@ export type Database = {
           hora_inicio?: string
           id?: string
           is_online?: boolean
+          last_assigned_at?: string | null
           last_seen_at?: string | null
           max_capacidad?: number
           nombre: string
@@ -98,6 +100,7 @@ export type Database = {
           hora_inicio?: string
           id?: string
           is_online?: boolean
+          last_assigned_at?: string | null
           last_seen_at?: string | null
           max_capacidad?: number
           nombre?: string
@@ -464,6 +467,7 @@ export type Database = {
     }
     Functions: {
       admin_asesoras_resumen: { Args: never; Returns: Json }
+      admin_cola_lra: { Args: never; Returns: Json }
       admin_kpis_globales: { Args: never; Returns: Json }
       admin_metricas_operativas:
         | { Args: never; Returns: Json }
@@ -507,6 +511,7 @@ export type Database = {
       }
       is_asesora: { Args: never; Returns: boolean }
       is_my_turno: { Args: { _turno_id: string }; Returns: boolean }
+      is_within_business_hours: { Args: { p_ts?: string }; Returns: boolean }
       reassign_pending: { Args: { p_asesor_id: string }; Returns: number }
       request_turno:
         | {
