@@ -1,11 +1,12 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import { motion, AnimatePresence } from "framer-motion";
-import { Building2, Globe, ArrowRight, Loader2, Lock, ShieldCheck, Sparkles } from "lucide-react";
+import { Building2, Globe, ArrowRight, Loader2, Lock, ShieldCheck, Sparkles, Clock } from "lucide-react";
 import logoCiaf from "@/assets/logo-ciaf-azul.png";
 import { usePageView } from "@/hooks/useTracking";
 import { useFlow } from "@/stores/flowStore";
+import { canPresencial, businessHoursLabel } from "@/utils/businessHours";
 
 const TURNOS_URL = "/sede";
 const CALCULADORA_URL = "/simulador";
@@ -18,9 +19,17 @@ const Segmentacion = () => {
   const { state, setModalidad } = useFlow();
   const [seleccion, setSeleccion] = useState<Opcion | null>(state.modalidad);
   const [cargando, setCargando] = useState(false);
+  const [presencialDisponible, setPresencialDisponible] = useState<boolean>(() => canPresencial());
+
+  // Re-evalúa cada minuto por si cruzamos el corte (ej. sábado 13:00).
+  useEffect(() => {
+    const t = setInterval(() => setPresencialDisponible(canPresencial()), 60_000);
+    return () => clearInterval(t);
+  }, []);
 
   const seleccionar = (opcion: Opcion) => {
     if (cargando) return;
+    if (opcion === "sede" && !presencialDisponible) return;
     setSeleccion(opcion);
     setModalidad(opcion);
     setCargando(true);
@@ -122,8 +131,24 @@ const Segmentacion = () => {
             </motion.div>
 
             {/* Cards */}
+            {!presencialDisponible && (
+              <motion.div
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="mb-5 flex items-center gap-2 rounded-2xl border border-amber-200 bg-amber-50/80 px-4 py-2.5 text-xs text-amber-800 backdrop-blur-md"
+                role="status"
+              >
+                <Clock className="h-4 w-4 shrink-0" />
+                <span>
+                  Atención presencial no disponible en este momento. Horario: <strong>{businessHoursLabel()}</strong>.
+                  Puedes continuar con tu simulación virtual.
+                </span>
+              </motion.div>
+            )}
             <div className="grid w-full max-w-4xl grid-cols-1 gap-5 sm:grid-cols-2 sm:gap-6">
-              {opciones.map((op, idx) => {
+              {opciones
+                .filter((op) => op.id !== "sede" || presencialDisponible)
+                .map((op, idx) => {
                 const Icon = op.icon;
                 const activa = seleccion === op.id;
                 const otra = seleccion !== null && !activa;
