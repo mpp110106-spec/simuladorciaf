@@ -240,6 +240,14 @@ interface ResultadosSimulacion {
   valorPorCuota: number;
 }
 
+interface FieldErrors {
+  programa?: string;
+  semestre?: string;
+  jornada?: string;
+  valorTotal?: string;
+  cuotaInicial?: string;
+}
+
 interface InfoCardProps {
   icon: LucideIcon;
   label: string;
@@ -557,34 +565,56 @@ const CreditSimulator = () => {
     }
   }, [valorTotal, tipoCuotaInicial, porcentajeCuotaInicial, montoCuotaInicial]);
 
-  const validarFormulario = useCallback((): boolean => {
-    if (!programa) {
-      toast.error("Por favor seleccione un programa académico");
-      return false;
-    }
-    if (!semestre) {
-      toast.error("Por favor seleccione un semestre");
-      return false;
-    }
-    if (!jornada) {
-      toast.error("Por favor seleccione una jornada");
-      return false;
-    }
+  // Validación en vivo — solo se muestra después de un primer intento o cuando el campo tiene valor
+  const [submitAttempted, setSubmitAttempted] = useState(false);
+
+  const errors = useMemo<FieldErrors>(() => {
+    const e: FieldErrors = {};
+    if (!programa) e.programa = "Selecciona un programa académico.";
+    if (programa && !semestre) e.semestre = "Selecciona un semestre.";
+    if (semestre && !jornada) e.jornada = "Selecciona una jornada.";
     const total = parseInputValue(valorTotal);
-    if (total <= 0) {
-      toast.error("Por favor ingrese un valor de matrícula válido");
+    if (valorTotal && total <= 0) e.valorTotal = "Ingresa un valor numérico mayor a 0.";
+    if (valorTotal && total > 0 && total < 100000) e.valorTotal = "El valor parece demasiado bajo. Revisa el monto.";
+    if (total > 0) {
+      if (tipoCuotaInicial === "monto") {
+        const monto = parseInputValue(montoCuotaInicial);
+        if (montoCuotaInicial && monto <= 0) e.cuotaInicial = "Ingresa un monto válido para la cuota inicial.";
+        else if (montoCuotaInicial && (monto / total) * 100 < 10)
+          e.cuotaInicial = `Mínimo ${formatCurrency(Math.ceil(total * 0.1))} (10% del valor).`;
+        else if (montoCuotaInicial && monto > total)
+          e.cuotaInicial = "La cuota inicial no puede superar el valor total.";
+      } else {
+        const pct = parseInt(porcentajeCuotaInicial, 10);
+        if (pct < 10) e.cuotaInicial = "El porcentaje mínimo es 10%.";
+        else if (pct > 100) e.cuotaInicial = "El porcentaje máximo es 100%.";
+      }
+    }
+    return e;
+  }, [programa, semestre, jornada, valorTotal, tipoCuotaInicial, montoCuotaInicial, porcentajeCuotaInicial]);
+
+  const showErr = (key: keyof FieldErrors): string | undefined => {
+    if (!errors[key]) return undefined;
+    if (submitAttempted) return errors[key];
+    // Mostrar inline si el campo ya tiene contenido ingresado
+    if (key === "valorTotal" && valorTotal) return errors[key];
+    if (key === "cuotaInicial" && (montoCuotaInicial || tipoCuotaInicial === "porcentaje")) return errors[key];
+    return undefined;
+  };
+
+  const validarFormulario = useCallback((): boolean => {
+    setSubmitAttempted(true);
+    const firstError = errors.programa ?? errors.semestre ?? errors.jornada ?? errors.valorTotal ?? errors.cuotaInicial;
+    if (firstError) {
+      toast.error(firstError);
       return false;
     }
-    if (porcentajeReal < 10) {
-      toast.error("La cuota inicial no puede ser menor al 10%");
-      return false;
-    }
-    if (porcentajeReal > 100) {
-      toast.error("La cuota inicial no puede ser mayor al 100%");
+    if (parseInputValue(valorTotal) <= 0) {
+      toast.error("Ingresa el valor de la matrícula.");
       return false;
     }
     return true;
-  }, [programa, semestre, jornada, valorTotal, porcentajeReal]);
+  }, [errors, valorTotal]);
 
   const calcularSimulacion = useCallback(() => {
     if (!validarFormulario()) return;
@@ -723,7 +753,7 @@ const CreditSimulator = () => {
                   Programa Académico
                 </Label>
                 <Select value={programa} onValueChange={handleProgramaChange}>
-                  <SelectTrigger id="programa" className="h-12 bg-card border-input hover:border-ciaf-blue transition-colors">
+                  <SelectTrigger id="programa" aria-invalid={!!(submitAttempted && errors.programa)} className={`h-12 bg-card border-input hover:border-ciaf-blue transition-colors ${submitAttempted && errors.programa ? "border-destructive" : ""}`}>
                     <SelectValue placeholder="Seleccione su programa" />
                   </SelectTrigger>
                   <SelectContent className="max-h-80 bg-popover border-border z-50">
@@ -734,6 +764,11 @@ const CreditSimulator = () => {
                     ))}
                   </SelectContent>
                 </Select>
+                {submitAttempted && errors.programa && (
+                  <p role="alert" className="text-sm text-destructive font-medium flex items-center gap-2">
+                    <Shield className="w-4 h-4" /> {errors.programa}
+                  </p>
+                )}
               </div>
 
               {/* Semestre */}
@@ -747,7 +782,7 @@ const CreditSimulator = () => {
                   onValueChange={handleSemestreChange}
                   disabled={!programa}
                 >
-                  <SelectTrigger id="semestre" className="h-12 bg-card border-input hover:border-ciaf-blue transition-colors">
+                  <SelectTrigger id="semestre" aria-invalid={!!(submitAttempted && errors.semestre)} className={`h-12 bg-card border-input hover:border-ciaf-blue transition-colors ${submitAttempted && errors.semestre ? "border-destructive" : ""}`}>
                     <SelectValue placeholder={programa ? "Seleccione el semestre" : "Primero seleccione un programa"} />
                   </SelectTrigger>
                   <SelectContent className="bg-popover border-border z-50">
@@ -758,6 +793,11 @@ const CreditSimulator = () => {
                     ))}
                   </SelectContent>
                 </Select>
+                {submitAttempted && errors.semestre && (
+                  <p role="alert" className="text-sm text-destructive font-medium flex items-center gap-2">
+                    <Shield className="w-4 h-4" /> {errors.semestre}
+                  </p>
+                )}
               </div>
 
               {/* Jornada */}
@@ -799,6 +839,11 @@ const CreditSimulator = () => {
                     </div>
                   </div>
                 )}
+                {showErr("jornada") && (
+                  <p id="jornada-error" role="alert" className="text-sm text-destructive font-medium flex items-center gap-2">
+                    <Shield className="w-4 h-4" /> {showErr("jornada")}
+                  </p>
+                )}
               </div>
 
               {/* Valor Total */}
@@ -816,7 +861,9 @@ const CreditSimulator = () => {
                     placeholder="0"
                     value={valorTotal ? formatCurrency(parseInputValue(valorTotal)).replace("$", "").trim() : ""}
                     onChange={(e) => setValorTotal(e.target.value)}
-                    className="h-12 pl-8 bg-card border-input hover:border-ciaf-blue focus:border-ciaf-blue transition-colors text-lg"
+                    aria-invalid={!!showErr("valorTotal")}
+                    aria-describedby={showErr("valorTotal") ? "valorTotal-error" : undefined}
+                    className={`h-12 pl-8 bg-card border-input hover:border-ciaf-blue focus:border-ciaf-blue transition-colors text-lg ${showErr("valorTotal") ? "border-destructive focus:border-destructive" : ""}`}
                   />
                 </div>
                 {jornada && (
@@ -825,6 +872,11 @@ const CreditSimulator = () => {
                     {esJornadaOrdinaria(jornada as TipoJornada) 
                       ? "Matrícula Ordinaria 2026-I" 
                       : "Matrícula Extraordinaria pago 2026-I"}
+                  </p>
+                )}
+                {showErr("valorTotal") && (
+                  <p id="valorTotal-error" role="alert" className="text-sm text-destructive font-medium flex items-center gap-2">
+                    <Shield className="w-4 h-4" /> {showErr("valorTotal")}
                   </p>
                 )}
               </div>
@@ -836,10 +888,12 @@ const CreditSimulator = () => {
                   Cuota Inicial
                 </Label>
                 
-                <div className="flex rounded-lg border border-input overflow-hidden">
+                <div className="flex rounded-lg border border-input overflow-hidden" role="tablist" aria-label="Tipo de cuota inicial">
                   <button
                     type="button"
                     onClick={() => setTipoCuotaInicial("porcentaje")}
+                    role="tab"
+                    aria-selected={tipoCuotaInicial === "porcentaje"}
                     className={`flex-1 py-3 px-4 text-sm font-medium transition-all ${
                       tipoCuotaInicial === "porcentaje"
                         ? "bg-ciaf-blue text-white"
@@ -851,6 +905,8 @@ const CreditSimulator = () => {
                   <button
                     type="button"
                     onClick={() => setTipoCuotaInicial("monto")}
+                    role="tab"
+                    aria-selected={tipoCuotaInicial === "monto"}
                     className={`flex-1 py-3 px-4 text-sm font-medium transition-all ${
                       tipoCuotaInicial === "monto"
                         ? "bg-ciaf-blue text-white"
@@ -862,12 +918,15 @@ const CreditSimulator = () => {
                 </div>
 
                 {tipoCuotaInicial === "porcentaje" ? (
-                  <div className="grid grid-cols-4 gap-2">
+                  <div className="grid grid-cols-4 gap-2" role="radiogroup" aria-label="Porcentaje de cuota inicial">
                     {PORCENTAJES_CUOTA_INICIAL.map((pct) => (
                       <button
                         key={pct}
                         type="button"
                         onClick={() => setPorcentajeCuotaInicial(pct.toString())}
+                        role="radio"
+                        aria-checked={porcentajeCuotaInicial === pct.toString()}
+                        aria-label={`${pct} por ciento de cuota inicial`}
                         className={`py-3 rounded-lg font-semibold text-sm transition-all ${
                           porcentajeCuotaInicial === pct.toString()
                             ? "bg-ciaf-blue text-white shadow-md"
@@ -887,15 +946,22 @@ const CreditSimulator = () => {
                       placeholder="Ingrese el monto"
                       value={montoCuotaInicial ? formatCurrency(parseInputValue(montoCuotaInicial)).replace("$", "").trim() : ""}
                       onChange={(e) => setMontoCuotaInicial(e.target.value)}
-                      className="h-12 pl-8 bg-card border-input hover:border-ciaf-blue focus:border-ciaf-blue transition-colors"
+                      aria-label="Monto de cuota inicial en pesos"
+                      aria-invalid={!!showErr("cuotaInicial")}
+                      aria-describedby={showErr("cuotaInicial") ? "cuotaInicial-error" : undefined}
+                      className={`h-12 pl-8 bg-card border-input hover:border-ciaf-blue focus:border-ciaf-blue transition-colors ${showErr("cuotaInicial") ? "border-destructive focus:border-destructive" : ""}`}
                     />
                   </div>
                 )}
 
-                {porcentajeReal > 0 && porcentajeReal < 20 && (
-                  <p className="text-sm text-destructive font-medium flex items-center gap-2">
-                    <Shield className="w-4 h-4" />
-                    La cuota inicial debe ser mínimo el 10%
+                {showErr("cuotaInicial") ? (
+                  <p id="cuotaInicial-error" role="alert" className="text-sm text-destructive font-medium flex items-center gap-2">
+                    <Shield className="w-4 h-4" /> {showErr("cuotaInicial")}
+                  </p>
+                ) : porcentajeReal > 0 && (
+                  <p className="text-xs text-muted-foreground flex items-center gap-2">
+                    <Info className="w-3 h-3" />
+                    Equivalente al {Math.round(porcentajeReal * 100) / 100}% del valor total
                   </p>
                 )}
               </div>
@@ -906,12 +972,14 @@ const CreditSimulator = () => {
                   <Calendar className="w-4 h-4 text-ciaf-blue" strokeWidth={2} />
                   Número de Cuotas
                 </Label>
-                <div className="grid grid-cols-3 gap-2">
+                <div className="grid grid-cols-3 gap-2" role="radiogroup" aria-label="Número de cuotas">
                   {OPCIONES_CUOTAS.map((num) => (
                     <button
                       key={num}
                       type="button"
                       onClick={() => setCantidadCuotas(num.toString())}
+                      role="radio"
+                      aria-checked={cantidadCuotas === num.toString()}
                       className={`py-3 rounded-lg font-semibold transition-all ${
                         cantidadCuotas === num.toString()
                           ? "bg-ciaf-blue text-white shadow-md"
@@ -1028,12 +1096,37 @@ const CreditSimulator = () => {
                     priority="medium"
                   >
                     <div className="mt-3 p-3 bg-white/80 rounded-lg text-xs border border-ciaf-blue/10">
-                      <div className="flex justify-between text-ciaf-blue/70">
+                      <div className="flex justify-between text-ciaf-blue/70 mb-2">
                         <span className="flex items-center gap-1">
                           <Wallet className="w-3 h-3" />
                           Saldo a financiar
                         </span>
                         <span className="font-medium">{formatCurrency(resultados.montoFinanciar)}</span>
+                      </div>
+                      <div className="flex justify-between text-ciaf-blue/70 mb-2">
+                        <span className="flex items-center gap-1">
+                          <Percent className="w-3 h-3" />
+                          Tasa de interés
+                        </span>
+                        <span className="font-medium text-emerald-700">0% — Sin intereses</span>
+                      </div>
+                      <div className="border-t border-ciaf-blue/10 pt-2 mt-2 space-y-1">
+                        <p className="text-[11px] uppercase tracking-wider text-ciaf-blue/60 font-semibold mb-1">
+                          Plan de cuotas
+                        </p>
+                        {Array.from({ length: resultados.cantidadCuotas }).map((_, i) => {
+                          const esUltima = i === resultados.cantidadCuotas - 1;
+                          // Ajuste de redondeo en la última cuota para que la suma cuadre exactamente
+                          const valor = esUltima
+                            ? resultados.montoFinanciar - resultados.valorPorCuota * (resultados.cantidadCuotas - 1)
+                            : resultados.valorPorCuota;
+                          return (
+                            <div key={i} className="flex justify-between text-ciaf-blue/80">
+                              <span>Cuota {i + 1}</span>
+                              <span className="font-medium">{formatCurrency(valor)}</span>
+                            </div>
+                          );
+                        })}
                       </div>
                     </div>
                   </InfoCard>
@@ -1045,6 +1138,22 @@ const CreditSimulator = () => {
                       Valor Total Matrícula
                     </span>
                     <span className="font-bold text-lg text-foreground">{formatCurrency(resultados.valorTotal)}</span>
+                  </div>
+
+                  {/* Total a pagar (incluye costos fijos) */}
+                  <div className="flex items-center justify-between py-3 px-4 border-2 border-ciaf-blue rounded-lg bg-ciaf-blue-light">
+                    <div className="flex flex-col">
+                      <span className="text-ciaf-blue font-semibold flex items-center gap-2">
+                        <CheckCircle2 className="w-4 h-4" />
+                        Total a pagar
+                      </span>
+                      <span className="text-[11px] text-ciaf-blue/70">
+                        Matrícula + estudio de crédito{resultados.seguroEstudiantil > 0 ? " + seguro" : ""}
+                      </span>
+                    </div>
+                    <span className="font-bold text-xl text-ciaf-blue">
+                      {formatCurrency(resultados.valorTotal + resultados.estudioCredito + resultados.seguroEstudiantil)}
+                    </span>
                   </div>
 
                   {/* 3️⃣ CAJA DE PAGO DE CONTADO */}
