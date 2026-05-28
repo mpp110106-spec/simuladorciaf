@@ -753,7 +753,7 @@ const CreditSimulator = () => {
                   Programa Académico
                 </Label>
                 <Select value={programa} onValueChange={handleProgramaChange}>
-                  <SelectTrigger id="programa" className="h-12 bg-card border-input hover:border-ciaf-blue transition-colors">
+                  <SelectTrigger id="programa" aria-invalid={!!(submitAttempted && errors.programa)} className={`h-12 bg-card border-input hover:border-ciaf-blue transition-colors ${submitAttempted && errors.programa ? "border-destructive" : ""}`}>
                     <SelectValue placeholder="Seleccione su programa" />
                   </SelectTrigger>
                   <SelectContent className="max-h-80 bg-popover border-border z-50">
@@ -764,6 +764,11 @@ const CreditSimulator = () => {
                     ))}
                   </SelectContent>
                 </Select>
+                {submitAttempted && errors.programa && (
+                  <p role="alert" className="text-sm text-destructive font-medium flex items-center gap-2">
+                    <Shield className="w-4 h-4" /> {errors.programa}
+                  </p>
+                )}
               </div>
 
               {/* Semestre */}
@@ -777,7 +782,7 @@ const CreditSimulator = () => {
                   onValueChange={handleSemestreChange}
                   disabled={!programa}
                 >
-                  <SelectTrigger id="semestre" className="h-12 bg-card border-input hover:border-ciaf-blue transition-colors">
+                  <SelectTrigger id="semestre" aria-invalid={!!(submitAttempted && errors.semestre)} className={`h-12 bg-card border-input hover:border-ciaf-blue transition-colors ${submitAttempted && errors.semestre ? "border-destructive" : ""}`}>
                     <SelectValue placeholder={programa ? "Seleccione el semestre" : "Primero seleccione un programa"} />
                   </SelectTrigger>
                   <SelectContent className="bg-popover border-border z-50">
@@ -788,6 +793,11 @@ const CreditSimulator = () => {
                     ))}
                   </SelectContent>
                 </Select>
+                {submitAttempted && errors.semestre && (
+                  <p role="alert" className="text-sm text-destructive font-medium flex items-center gap-2">
+                    <Shield className="w-4 h-4" /> {errors.semestre}
+                  </p>
+                )}
               </div>
 
               {/* Jornada */}
