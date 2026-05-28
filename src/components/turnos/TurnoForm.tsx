@@ -1,7 +1,8 @@
 import { useState, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { CalendarClock, Loader2, CheckCircle2, User, Phone, Mail, Tag, GraduationCap, BookOpen, Sparkles } from "lucide-react";
+import { CalendarClock, Loader2, CheckCircle2, User, Phone, Mail, Tag, GraduationCap, BookOpen, Sparkles, Globe } from "lucide-react";
 import { toast } from "sonner";
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -25,6 +26,9 @@ import { useFlow } from "@/stores/flowStore";
 import { useEffect } from "react";
 import SedeSelector from "@/components/turnos/SedeSelector";
 import { toast as sonnerToast } from "sonner";
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter,
+} from "@/components/ui/dialog";
 
 interface TurnoFormProps {
   simulacionValor?: number | null;
@@ -44,8 +48,10 @@ interface TurnoFormProps {
 const TurnoForm = ({ simulacionValor, onSuccess }: TurnoFormProps) => {
   const [submitting, setSubmitting] = useState(false);
   const [done, setDone] = useState(false);
+  const [virtualFallback, setVirtualFallback] = useState<null | { reason: "no_advisor" | "out_of_hours" }>(null);
+  const navigate = useNavigate();
   const { track } = useTracking();
-  const { state: flowState, setDatos } = useFlow();
+  const { state: flowState, setDatos, setModalidad } = useFlow();
   // Idempotency key: stable per form mount → protege contra doble submit, refresh y reintentos
   const idempotencyKeyRef = useRef<string>(
     (typeof crypto !== "undefined" && "randomUUID" in crypto)
@@ -123,6 +129,12 @@ const TurnoForm = ({ simulacionValor, onSuccess }: TurnoFormProps) => {
         sede_id: flowState.sedeId,
         idempotency_key: idempotencyKeyRef.current,
       });
+      // Fallback automático a virtual si la RPC no asignó asesora
+      // (sin asesoras disponibles o fuera de horario).
+      if (!turno.asesor_id) {
+        setVirtualFallback({ reason: "no_advisor" });
+        return;
+      }
       // Detección de respuesta idempotente:
       // - misma id que el turno activo en el store
       // - o misma id que ya procesamos en esta sesión del formulario
@@ -223,6 +235,7 @@ const TurnoForm = ({ simulacionValor, onSuccess }: TurnoFormProps) => {
   }
 
   return (
+    <>
     <Card className="mt-6 border-ciaf-blue/20 shadow-sm">
       <CardHeader>
         <div className="flex items-start gap-3">
@@ -395,7 +408,7 @@ const TurnoForm = ({ simulacionValor, onSuccess }: TurnoFormProps) => {
             >
               {submitting ? (
                 <>
-                  <Loader2 className="w-4 h-4 animate-spin" /> Enviando…
+                  <Loader2 className="w-4 h-4 animate-spin" /> Buscando asesora disponible…
                 </>
               ) : (
                 "Solicitar turno"
@@ -405,6 +418,34 @@ const TurnoForm = ({ simulacionValor, onSuccess }: TurnoFormProps) => {
         </form>
       </CardContent>
     </Card>
+    {virtualFallback && (
+      <Dialog open onOpenChange={(o) => { if (!o) setVirtualFallback(null); }}>
+        <DialogContent>
+          <DialogHeader>
+            <div className="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-2xl bg-ciaf-blue/10">
+              <Globe className="h-6 w-6 text-ciaf-blue" />
+            </div>
+            <DialogTitle className="text-center">Atención presencial no disponible</DialogTitle>
+            <DialogDescription className="text-center">
+              Hemos activado tu asistente virtual para no detener tu proceso. Continúa con la simulación de crédito en línea.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              className="w-full bg-ciaf-blue hover:bg-ciaf-blue/90 text-white"
+              onClick={() => {
+                setModalidad("virtual");
+                setVirtualFallback(null);
+                navigate("/simulador");
+              }}
+            >
+              Continuar virtual
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    )}
+    </>
   );
 };
 

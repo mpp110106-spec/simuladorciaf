@@ -38,6 +38,29 @@ export const adminService = {
     const { error } = await supabase.rpc("admin_set_sede_asesora", { p_asesor_id: asesorId, p_sede_id: sedeId });
     if (error) throw error;
   },
+  async colaLra() {
+    const { data, error } = await supabase.rpc("admin_cola_lra");
+    if (error) throw error;
+    return data as {
+      business_hours: boolean;
+      now_local: string;
+      cola: Array<{
+        id: string;
+        nombre: string;
+        estado_op: string;
+        last_assigned_at: string | null;
+        hora_inicio: string;
+        hora_fin: string;
+        max_capacidad: number;
+        soft_capacidad: number;
+        sede_codigo: string | null;
+        elegible: boolean;
+        carga_actual: number;
+        atendidos_hoy: number;
+        orden: number;
+      }>;
+    };
+  },
 };
 
 export const encuestaService = {
