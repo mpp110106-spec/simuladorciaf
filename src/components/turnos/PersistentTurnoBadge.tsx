@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useLocation } from "react-router-dom";
 import { useActiveTurno } from "@/hooks/useActiveTurno";
 import { useTurnoLive } from "@/hooks/useTurnoLive";
+import { useTurnoHeartbeat } from "@/hooks/useTurnoHeartbeat";
 import { useEffect, useRef } from "react";
 import { toast } from "sonner";
 
@@ -12,6 +13,8 @@ const PersistentTurnoBadge = () => {
   const { turno, clear } = useActiveTurno();
   const { pathname } = useLocation();
   const { data: live } = useTurnoLive(turno?.id ?? null);
+  // Heartbeat global: mientras el badge persistente esté montado y el turno siga activo
+  useTurnoHeartbeat(turno?.id ?? null, live?.estado);
   const lastEstado = useRef<string | null>(null);
 
   useEffect(() => {

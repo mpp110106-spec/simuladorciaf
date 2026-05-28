@@ -2,6 +2,7 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { Ticket, UserCircle2, Users, Clock3, CheckCircle2, Loader2, Sparkles, Star, MapPin } from "lucide-react";
 import { useTurnoLive } from "@/hooks/useTurnoLive";
+import { useTurnoHeartbeat } from "@/hooks/useTurnoHeartbeat";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import EncuestaSatisfaccion from "@/components/encuesta/EncuestaSatisfaccion";
@@ -20,6 +21,9 @@ interface Props {
 
 const MiTurnoCard = ({ turnoId }: Props) => {
   const { data, loading } = useTurnoLive(turnoId);
+  // Mantiene last_activity_at fresco para que el cleanup automático
+  // no cancele el turno mientras el estudiante lo tiene en pantalla.
+  useTurnoHeartbeat(turnoId, data?.estado);
   const [showEncuesta, setShowEncuesta] = useState(false);
   const yaEnviada = encuestaService.existeParaTurno(turnoId);
 
