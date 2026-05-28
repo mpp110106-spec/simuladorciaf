@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import { adminService } from "@/services/adminService";
 import { supabase } from "@/integrations/supabase/client";
+import { Link } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -111,9 +112,16 @@ export default function Admin() {
                 <div className="text-base font-bold text-[#001550]">CIAF · Dirección de Riesgos</div>
               </div>
             </div>
-            <Button variant="ghost" size="sm" onClick={signOut} className="text-slate-500">
-              <LogOut className="w-4 h-4 mr-1" /> Salir
-            </Button>
+            <div className="flex items-center gap-2">
+              <Link to="/admin/operativo">
+                <Button variant="outline" size="sm" className="border-[#0699d9]/40 text-[#013084]">
+                  <Activity className="w-4 h-4 mr-1" /> Métricas operativas
+                </Button>
+              </Link>
+              <Button variant="ghost" size="sm" onClick={signOut} className="text-slate-500">
+                <LogOut className="w-4 h-4 mr-1" /> Salir
+              </Button>
+            </div>
           </div>
         </header>
 
