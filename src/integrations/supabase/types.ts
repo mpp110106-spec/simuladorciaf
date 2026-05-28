@@ -587,6 +587,7 @@ export type Database = {
         Returns: undefined
       }
       start_atencion: { Args: { p_turno_id: string }; Returns: undefined }
+      touch_turno: { Args: { p_id: string }; Returns: boolean }
     }
     Enums: {
       app_role: "admin" | "colaborador" | "superadmin"
