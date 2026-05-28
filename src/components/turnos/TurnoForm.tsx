@@ -407,7 +407,7 @@ const TurnoForm = ({ simulacionValor, onSuccess }: TurnoFormProps) => {
             >
               {submitting ? (
                 <>
-                  <Loader2 className="w-4 h-4 animate-spin" /> Enviando…
+                  <Loader2 className="w-4 h-4 animate-spin" /> Buscando asesora disponible…
                 </>
               ) : (
                 "Solicitar turno"
