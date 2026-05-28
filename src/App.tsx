@@ -15,6 +15,7 @@ import Analytics from "./pages/Analytics";
 import FinanciacionPage from "./pages/Financiacion";
 import Operacion from "./pages/Operacion";
 import Admin from "./pages/Admin";
+import AdminOperativo from "./pages/AdminOperativo";
 import { AuthProvider } from "./contexts/AuthContext";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
 import AsesoraRoute from "./components/auth/AsesoraRoute";
@@ -44,6 +45,7 @@ const App = () => (
               <Route path="/auth" element={<Auth />} />
               <Route path="/operacion" element={<AsesoraRoute><Operacion /></AsesoraRoute>} />
               <Route path="/admin" element={<SuperAdminRoute><Admin /></SuperAdminRoute>} />
+              <Route path="/admin/operativo" element={<SuperAdminRoute><AdminOperativo /></SuperAdminRoute>} />
               <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
               <Route path="/turnos" element={<ProtectedRoute><Turnos /></ProtectedRoute>} />
               <Route path="/analytics" element={<ProtectedRoute><Analytics /></ProtectedRoute>} />

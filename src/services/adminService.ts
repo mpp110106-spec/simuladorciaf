@@ -26,6 +26,14 @@ export const adminService = {
     if (error) throw error;
     return (data as unknown[]) ?? [];
   },
+  async metricasOperativas(from: string, to: string) {
+    const { data, error } = await supabase.rpc("admin_metricas_operativas", {
+      p_from: from,
+      p_to: to,
+    } as never);
+    if (error) throw error;
+    return data as Record<string, unknown>;
+  },
   async setSedeAsesora(asesorId: string, sedeId: string) {
     const { error } = await supabase.rpc("admin_set_sede_asesora", { p_asesor_id: asesorId, p_sede_id: sedeId });
     if (error) throw error;

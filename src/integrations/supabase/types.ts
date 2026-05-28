@@ -465,7 +465,9 @@ export type Database = {
     Functions: {
       admin_asesoras_resumen: { Args: never; Returns: Json }
       admin_kpis_globales: { Args: never; Returns: Json }
-      admin_metricas_operativas: { Args: never; Returns: Json }
+      admin_metricas_operativas:
+        | { Args: never; Returns: Json }
+        | { Args: { p_from: string; p_to: string }; Returns: Json }
       admin_satisfaccion_resumen: { Args: never; Returns: Json }
       admin_sedes_resumen: { Args: never; Returns: Json }
       admin_set_sede_asesora: {
