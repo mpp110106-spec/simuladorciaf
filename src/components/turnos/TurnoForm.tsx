@@ -1,7 +1,8 @@
 import { useState, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { CalendarClock, Loader2, CheckCircle2, User, Phone, Mail, Tag, GraduationCap, BookOpen, Sparkles } from "lucide-react";
+import { CalendarClock, Loader2, CheckCircle2, User, Phone, Mail, Tag, GraduationCap, BookOpen, Sparkles, Globe } from "lucide-react";
 import { toast } from "sonner";
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -25,6 +26,9 @@ import { useFlow } from "@/stores/flowStore";
 import { useEffect } from "react";
 import SedeSelector from "@/components/turnos/SedeSelector";
 import { toast as sonnerToast } from "sonner";
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter,
+} from "@/components/ui/dialog";
 
 interface TurnoFormProps {
   simulacionValor?: number | null;
@@ -44,8 +48,10 @@ interface TurnoFormProps {
 const TurnoForm = ({ simulacionValor, onSuccess }: TurnoFormProps) => {
   const [submitting, setSubmitting] = useState(false);
   const [done, setDone] = useState(false);
+  const [virtualFallback, setVirtualFallback] = useState<null | { reason: "no_advisor" | "out_of_hours" }>(null);
+  const navigate = useNavigate();
   const { track } = useTracking();
-  const { state: flowState, setDatos } = useFlow();
+  const { state: flowState, setDatos, setModalidad } = useFlow();
   // Idempotency key: stable per form mount → protege contra doble submit, refresh y reintentos
   const idempotencyKeyRef = useRef<string>(
     (typeof crypto !== "undefined" && "randomUUID" in crypto)
