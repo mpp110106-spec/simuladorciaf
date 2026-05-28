@@ -235,6 +235,7 @@ const TurnoForm = ({ simulacionValor, onSuccess }: TurnoFormProps) => {
   }
 
   return (
+    <>
     <Card className="mt-6 border-ciaf-blue/20 shadow-sm">
       <CardHeader>
         <div className="flex items-start gap-3">
