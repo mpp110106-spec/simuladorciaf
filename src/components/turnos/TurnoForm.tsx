@@ -417,6 +417,34 @@ const TurnoForm = ({ simulacionValor, onSuccess }: TurnoFormProps) => {
         </form>
       </CardContent>
     </Card>
+    {virtualFallback && (
+      <Dialog open onOpenChange={(o) => { if (!o) setVirtualFallback(null); }}>
+        <DialogContent>
+          <DialogHeader>
+            <div className="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-2xl bg-ciaf-blue/10">
+              <Globe className="h-6 w-6 text-ciaf-blue" />
+            </div>
+            <DialogTitle className="text-center">Atención presencial no disponible</DialogTitle>
+            <DialogDescription className="text-center">
+              Hemos activado tu asistente virtual para no detener tu proceso. Continúa con la simulación de crédito en línea.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              className="w-full bg-ciaf-blue hover:bg-ciaf-blue/90 text-white"
+              onClick={() => {
+                setModalidad("virtual");
+                setVirtualFallback(null);
+                navigate("/simulador");
+              }}
+            >
+              Continuar virtual
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    )}
+    </>
   );
 };
 
