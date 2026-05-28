@@ -12,6 +12,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
+import ColaLra from "@/components/admin/ColaLra";
 import {
   ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid,
   LineChart, Line, Legend,
@@ -287,6 +288,9 @@ export default function AdminOperativo() {
                   </div>
                 </Card>
               </div>
+
+              {/* Cola LRA */}
+              <ColaLra />
             </>
           )}
         </main>
