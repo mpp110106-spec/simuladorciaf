@@ -129,6 +129,12 @@ const TurnoForm = ({ simulacionValor, onSuccess }: TurnoFormProps) => {
         sede_id: flowState.sedeId,
         idempotency_key: idempotencyKeyRef.current,
       });
+      // Fallback automático a virtual si la RPC no asignó asesora
+      // (sin asesoras disponibles o fuera de horario).
+      if (!turno.asesor_id) {
+        setVirtualFallback({ reason: "no_advisor" });
+        return;
+      }
       // Detección de respuesta idempotente:
       // - misma id que el turno activo en el store
       // - o misma id que ya procesamos en esta sesión del formulario
