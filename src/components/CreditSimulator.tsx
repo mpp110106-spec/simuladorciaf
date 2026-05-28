@@ -1096,12 +1096,37 @@ const CreditSimulator = () => {
                     priority="medium"
                   >
                     <div className="mt-3 p-3 bg-white/80 rounded-lg text-xs border border-ciaf-blue/10">
-                      <div className="flex justify-between text-ciaf-blue/70">
+                      <div className="flex justify-between text-ciaf-blue/70 mb-2">
                         <span className="flex items-center gap-1">
                           <Wallet className="w-3 h-3" />
                           Saldo a financiar
                         </span>
                         <span className="font-medium">{formatCurrency(resultados.montoFinanciar)}</span>
+                      </div>
+                      <div className="flex justify-between text-ciaf-blue/70 mb-2">
+                        <span className="flex items-center gap-1">
+                          <Percent className="w-3 h-3" />
+                          Tasa de interés
+                        </span>
+                        <span className="font-medium text-emerald-700">0% — Sin intereses</span>
+                      </div>
+                      <div className="border-t border-ciaf-blue/10 pt-2 mt-2 space-y-1">
+                        <p className="text-[11px] uppercase tracking-wider text-ciaf-blue/60 font-semibold mb-1">
+                          Plan de cuotas
+                        </p>
+                        {Array.from({ length: resultados.cantidadCuotas }).map((_, i) => {
+                          const esUltima = i === resultados.cantidadCuotas - 1;
+                          // Ajuste de redondeo en la última cuota para que la suma cuadre exactamente
+                          const valor = esUltima
+                            ? resultados.montoFinanciar - resultados.valorPorCuota * (resultados.cantidadCuotas - 1)
+                            : resultados.valorPorCuota;
+                          return (
+                            <div key={i} className="flex justify-between text-ciaf-blue/80">
+                              <span>Cuota {i + 1}</span>
+                              <span className="font-medium">{formatCurrency(valor)}</span>
+                            </div>
+                          );
+                        })}
                       </div>
                     </div>
                   </InfoCard>
@@ -1113,6 +1138,22 @@ const CreditSimulator = () => {
                       Valor Total Matrícula
                     </span>
                     <span className="font-bold text-lg text-foreground">{formatCurrency(resultados.valorTotal)}</span>
+                  </div>
+
+                  {/* Total a pagar (incluye costos fijos) */}
+                  <div className="flex items-center justify-between py-3 px-4 border-2 border-ciaf-blue rounded-lg bg-ciaf-blue-light">
+                    <div className="flex flex-col">
+                      <span className="text-ciaf-blue font-semibold flex items-center gap-2">
+                        <CheckCircle2 className="w-4 h-4" />
+                        Total a pagar
+                      </span>
+                      <span className="text-[11px] text-ciaf-blue/70">
+                        Matrícula + estudio de crédito{resultados.seguroEstudiantil > 0 ? " + seguro" : ""}
+                      </span>
+                    </div>
+                    <span className="font-bold text-xl text-ciaf-blue">
+                      {formatCurrency(resultados.valorTotal + resultados.estudioCredito + resultados.seguroEstudiantil)}
+                    </span>
                   </div>
 
                   {/* 3️⃣ CAJA DE PAGO DE CONTADO */}
