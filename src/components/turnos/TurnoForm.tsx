@@ -52,6 +52,8 @@ const TurnoForm = ({ simulacionValor, onSuccess }: TurnoFormProps) => {
       ? crypto.randomUUID()
       : `idem-${Date.now()}-${Math.random().toString(36).slice(2)}`
   );
+  // Última respuesta del backend procesada → evita duplicar UI ante reintentos idempotentes
+  const lastHandledTurnoIdRef = useRef<string | null>(null);
 
   const {
     register,
@@ -121,15 +123,34 @@ const TurnoForm = ({ simulacionValor, onSuccess }: TurnoFormProps) => {
         sede_id: flowState.sedeId,
         idempotency_key: idempotencyKeyRef.current,
       });
-      track("turno_creado", { tipificacion: data.tipificacion, turno_id: turno.id });
+      // Detección de respuesta idempotente:
+      // - misma id que el turno activo en el store
+      // - o misma id que ya procesamos en esta sesión del formulario
+      const isReplay =
+        lastHandledTurnoIdRef.current === turno.id ||
+        flowState.turno?.id === turno.id;
+      lastHandledTurnoIdRef.current = turno.id;
+
       const numeroFmt = String(turno.numero ?? 0).padStart(3, "0");
       const asesoraTxt = turno.asesor_nombre ? ` · ${turno.asesor_nombre}` : "";
-      toast.success(`¡Turno ${numeroFmt} asignado!${asesoraTxt}`, {
-        description: turno.asesor_nombre
-          ? `Tu asesora asignada: ${turno.asesor_nombre}.`
-          : "Guarda tu número de turno. Un asesor CIAF te contactará pronto.",
-      });
-      // NO reseteamos: conservamos los datos en caso de que el estudiante quiera editarlos
+
+      if (isReplay) {
+        // No re-trackear ni re-celebrar: solo confirmar suavemente
+        toast.info(`Ya tenías el turno ${numeroFmt} registrado`, {
+          description: turno.asesor_nombre
+            ? `Continuamos con tu asesora ${turno.asesor_nombre}.`
+            : "Te llevamos a tu turno actual.",
+        });
+      } else {
+        track("turno_creado", { tipificacion: data.tipificacion, turno_id: turno.id });
+        toast.success(`¡Turno ${numeroFmt} asignado!${asesoraTxt}`, {
+          description: turno.asesor_nombre
+            ? `Tu asesora asignada: ${turno.asesor_nombre}.`
+            : "Guarda tu número de turno. Un asesor CIAF te contactará pronto.",
+        });
+      }
+
+      // onSuccess es idempotente (navega/actualiza al mismo turno) → siempre lo invocamos
       if (onSuccess) {
         onSuccess({
           id: turno.id,
@@ -146,10 +167,36 @@ const TurnoForm = ({ simulacionValor, onSuccess }: TurnoFormProps) => {
         setDone(true);
       }
     } catch (e) {
-      console.error("Error registrando turno", e);
-      toast.error("No pudimos registrar tu turno", {
-        description: e instanceof Error ? e.message : "Inténtalo nuevamente.",
-      });
+      // Si el backend lanza una violación de unicidad por la idempotency_key
+      // (carrera entre dos requests concurrentes), tratamos como replay silencioso
+      // en lugar de mostrar un error al usuario.
+      const msg = e instanceof Error ? e.message : String(e);
+      const isIdempotencyCollision =
+        /idempotency|duplicate key|uq_turnos_idempotency|unique constraint/i.test(msg);
+
+      if (isIdempotencyCollision && flowState.turno) {
+        toast.info("Tu turno ya estaba registrado", {
+          description: "Te mostramos el turno existente.",
+        });
+        if (onSuccess) {
+          onSuccess({
+            id: flowState.turno.id,
+            numero: flowState.turno.numero,
+            asesor_nombre: flowState.turno.asesor_nombre ?? null,
+            personas_delante: flowState.turno.personas_delante ?? 0,
+            tiempo_estimado_min: flowState.turno.tiempo_estimado_min ?? 0,
+            tipificacion: data.tipificacion,
+            carrera: data.carrera,
+            semestre: data.semestre,
+            programa: getProgramaAcademico(data.carrera, data.semestre),
+          });
+        }
+      } else {
+        console.error("Error registrando turno", e);
+        toast.error("No pudimos registrar tu turno", {
+          description: msg || "Inténtalo nuevamente.",
+        });
+      }
     } finally {
       setSubmitting(false);
     }
