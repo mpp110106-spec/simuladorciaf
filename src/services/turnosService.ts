@@ -28,6 +28,15 @@ export const turnosService = {
     if (!turno) {
       throw new Error("No se pudo generar el número de turno.");
     }
+    if (turno.asesor_nombre) {
+      // Debug rotación LRA: nombre + hora local
+      const horaLocal = new Date().toLocaleTimeString("es-CO", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+      // eslint-disable-next-line no-console
+      console.log(`[LRA] Asignando a ${turno.asesor_nombre} (sede solicitada: ${input.sede_id ?? "—"}) a las ${horaLocal}`);
+    } else {
+      // eslint-disable-next-line no-console
+      console.warn(`[LRA] No hay asesora disponible para la sede ${input.sede_id ?? "—"}`);
+    }
     return {
       id: turno.id,
       numero: turno.numero,
