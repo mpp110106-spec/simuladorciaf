@@ -9,6 +9,7 @@ import {
 import { useAuth } from "@/contexts/AuthContext";
 import { useMiAsesora } from "@/hooks/useMiAsesora";
 import { useMisTurnos } from "@/hooks/useMisTurnos";
+import { useColaSede } from "@/hooks/useColaSede";
 import { operacionService } from "@/services/operacionService";
 import EstadoSelector from "@/components/operacion/EstadoSelector";
 import TurnoCard from "@/components/operacion/TurnoCard";
@@ -38,9 +39,10 @@ export default function Operacion() {
   const { signOut } = useAuth();
   const { asesora, loading: loadingA, refresh: refreshA } = useMiAsesora();
   const { turnos, loading: loadingT } = useMisTurnos(asesora?.id ?? null);
+  const { turnos: cola, loading: loadingCola } = useColaSede(asesora?.sede_id ?? null);
   const [finishTarget, setFinishTarget] = useState<Turno | null>(null);
   const [showHorario, setShowHorario] = useState(false);
-  const [calling, setCalling] = useState(false);
+  const [takingId, setTakingId] = useState<string | null>(null);
 
   // Heartbeat de presencia: cada 30s mientras el panel esté abierto.
   // Asegura que la asignación automática solo entregue turnos a quien esté realmente conectada.
@@ -117,14 +119,16 @@ export default function Operacion() {
     try { await operacionService.cancelTurno(id); toast.success("Turno cancelado"); }
     catch { toast.error("No se pudo cancelar"); }
   };
-  const handleCallNext = async () => {
-    setCalling(true);
+  const handleTake = async (id: string) => {
+    setTakingId(id);
     try {
-      const id = await operacionService.callNext();
-      if (id) toast.success("Siguiente turno en atención");
-      else toast.info("No hay turnos en espera");
-    } catch { toast.error("No se pudo llamar siguiente"); }
-    finally { setCalling(false); }
+      await operacionService.takeTurno(id);
+      toast.success("Turno tomado");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "No se pudo tomar el turno");
+    } finally {
+      setTakingId(null);
+    }
   };
   const handleSaveHorario = async (patch: Parameters<typeof operacionService.updateHorario>[1]) => {
     try { await operacionService.updateHorario(asesora.id, patch); await refreshA(); toast.success("Jornada actualizada"); }
@@ -188,16 +192,86 @@ export default function Operacion() {
               </div>
               <div className="flex items-center gap-3">
                 <Progress value={capPct} className="w-48 h-2" />
-                <Button
-                  onClick={handleCallNext}
-                  disabled={calling || stats.pendientes.length === 0 || asesora.estado_op !== "disponible"}
-                  className="bg-gradient-to-r from-[#001550] to-[#013084] hover:from-[#013084] hover:to-[#0699d9] text-white shadow-lg shadow-[#001550]/20"
-                >
-                  <PhoneCall className="w-4 h-4 mr-1.5" />
-                  {calling ? "Llamando..." : "Llamar siguiente"}
-                </Button>
+                <div className="text-xs text-slate-500">
+                  Selección manual desde la cola compartida
+                </div>
               </div>
             </div>
+          </Card>
+
+          {/* Cola compartida de la sede */}
+          <Card className="p-4 bg-white/70 backdrop-blur-md border-white/40">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <Users className="w-4 h-4 text-[#0699d9]" />
+                <h2 className="font-semibold text-[#001550]">Estudiantes en Espera</h2>
+                <span className="text-xs font-bold text-slate-500 bg-white/70 px-2 py-0.5 rounded-full">{cola.length}</span>
+              </div>
+              <div className="text-[11px] uppercase tracking-wider text-slate-400 font-semibold">Cola compartida de tu sede</div>
+            </div>
+            {loadingCola ? (
+              <div className="h-16 rounded-xl bg-slate-200/40 animate-pulse" />
+            ) : cola.length === 0 ? (
+              <div className="text-center text-sm text-slate-400 py-8">No hay estudiantes esperando en tu sede</div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="text-left text-[11px] uppercase tracking-wider text-slate-500 border-b border-white/60">
+                      <th className="py-2 pr-2">#</th>
+                      <th className="py-2 pr-2">Nombre</th>
+                      <th className="py-2 pr-2">Documento</th>
+                      <th className="py-2 pr-2">Tipificación</th>
+                      <th className="py-2 pr-2">Hora</th>
+                      <th className="py-2 pr-2">Espera</th>
+                      <th className="py-2 pr-2 text-right">Acción</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {cola.map((t) => {
+                      const created = new Date(t.created_at);
+                      const waitMin = Math.max(0, Math.floor((Date.now() - created.getTime()) / 60000));
+                      const hora = created.toLocaleTimeString("es-CO", { hour: "2-digit", minute: "2-digit" });
+                      const canTake = asesora.estado_op === "disponible";
+                      return (
+                        <tr key={t.id} className="border-b border-white/40 hover:bg-white/40">
+                          <td className="py-2 pr-2 font-bold text-[#001550]">#{t.numero}</td>
+                          <td className="py-2 pr-2">{t.nombre}</td>
+                          <td className="py-2 pr-2 text-slate-600">{t.telefono}</td>
+                          <td className="py-2 pr-2">
+                            <span className="text-[11px] px-2 py-0.5 rounded-full bg-[#0699d9]/10 text-[#013084] font-semibold">
+                              {t.tipificacion}
+                            </span>
+                          </td>
+                          <td className="py-2 pr-2 text-slate-500">{hora}</td>
+                          <td className="py-2 pr-2">
+                            <span className={`text-xs font-semibold ${waitMin > 15 ? "text-rose-600" : waitMin > 5 ? "text-amber-600" : "text-emerald-600"}`}>
+                              {waitMin} min
+                            </span>
+                          </td>
+                          <td className="py-2 pr-2 text-right">
+                            <Button
+                              size="sm"
+                              onClick={() => handleTake(t.id)}
+                              disabled={takingId === t.id || !canTake}
+                              className="bg-gradient-to-r from-[#001550] to-[#013084] hover:from-[#013084] hover:to-[#0699d9] text-white"
+                            >
+                              {takingId === t.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <PhoneCall className="w-3.5 h-3.5 mr-1" />}
+                              Atender
+                            </Button>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+                {asesora.estado_op !== "disponible" && (
+                  <div className="text-[11px] text-amber-600 mt-2">
+                    Cambia tu estado a "Disponible" para poder atender estudiantes.
+                  </div>
+                )}
+              </div>
+            )}
           </Card>
 
           {/* Kanban */}

@@ -16,7 +16,7 @@ export function useMiAsesora() {
     }
     const { data } = await supabase
       .from("asesores")
-      .select("id,nombre,correo,estado_op,is_online,hora_inicio,hora_fin,pausa_inicio,pausa_fin,max_capacidad,tiempo_promedio_min")
+      .select("id,nombre,correo,estado_op,is_online,hora_inicio,hora_fin,pausa_inicio,pausa_fin,max_capacidad,tiempo_promedio_min,sede_id")
       .eq("user_id", user.id)
       .maybeSingle();
     setAsesora((data as MiAsesora | null) ?? null);
