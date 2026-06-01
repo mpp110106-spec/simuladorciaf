@@ -129,12 +129,9 @@ const TurnoForm = ({ simulacionValor, onSuccess }: TurnoFormProps) => {
         sede_id: flowState.sedeId,
         idempotency_key: idempotencyKeyRef.current,
       });
-      // Fallback automático a virtual si la RPC no asignó asesora
-      // (sin asesoras disponibles o fuera de horario).
-      if (!turno.asesor_id) {
-        setVirtualFallback({ reason: "no_advisor" });
-        return;
-      }
+      // Nota: con el modelo de cola manual, asesor_id es NULL en la creación.
+      // La asesora reclama el turno desde su panel (take_turno). No mostramos
+      // el fallback virtual aquí: la disponibilidad se valida por la cola de sede.
       // Detección de respuesta idempotente:
       // - misma id que el turno activo en el store
       // - o misma id que ya procesamos en esta sesión del formulario
