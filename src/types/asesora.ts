@@ -39,4 +39,5 @@ export interface MiAsesora {
   pausa_fin: string | null;
   max_capacidad: number;
   tiempo_promedio_min: number;
+  sede_id: string | null;
 }
