@@ -594,6 +594,14 @@ export type Database = {
         Returns: undefined
       }
       start_atencion: { Args: { p_turno_id: string }; Returns: undefined }
+      take_turno: {
+        Args: { p_turno_id: string }
+        Returns: {
+          asesor_id: string
+          id: string
+          numero: number
+        }[]
+      }
       touch_turno: { Args: { p_id: string }; Returns: boolean }
     }
     Enums: {
