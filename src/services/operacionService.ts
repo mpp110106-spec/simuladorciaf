@@ -26,6 +26,10 @@ export const operacionService = {
     const { error } = await supabase.from("turnos").update({ estado: "cancelado" }).eq("id", turnoId);
     if (error) throw error;
   },
+  async takeTurno(turnoId: string): Promise<void> {
+    const { error } = await supabase.rpc("take_turno", { p_turno_id: turnoId });
+    if (error) throw error;
+  },
   async updateHorario(id: string, patch: { hora_inicio?: string; hora_fin?: string; pausa_inicio?: string | null; pausa_fin?: string | null; max_capacidad?: number }) {
     const { error } = await supabase.from("asesores").update(patch).eq("id", id);
     if (error) throw error;
