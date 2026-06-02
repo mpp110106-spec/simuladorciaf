@@ -1193,7 +1193,7 @@ const CreditSimulator = () => {
         {/* Footer */}
         <footer className="mt-12 text-center">
           <p className="text-sm text-muted-foreground">
-            © {new Date().getFullYear()} CIAF - Centro de Instrucción y Aprendizaje Financiero
+            © {new Date().getFullYear()} CIAF · Corporación Instituto de Administración y Finanzas
           </p>
           <p className="text-xs text-muted-foreground/80 mt-2">
             <Link to="/auth" className="hover:text-ciaf-blue transition-colors">
