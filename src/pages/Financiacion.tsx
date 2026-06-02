@@ -1,19 +1,23 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
-import { ArrowLeft, FileSignature, ExternalLink, FileText } from "lucide-react";
+import { ArrowLeft, FileSignature, ExternalLink, FileText, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import FinanciacionTimeline from "@/components/financiacion/FinanciacionTimeline";
 import MiTurnoCard from "@/components/turnos/MiTurnoCard";
 import { useActiveTurno } from "@/hooks/useActiveTurno";
+import { useFlow } from "@/stores/flowStore";
 import logoCiaf from "@/assets/logo-ciaf-azul.png";
 
 const FORMULARIO_CREDITO_URL = "https://ciaf.digital/inscribete/";
+const ENCUESTA_CARTERA_URL = "https://docs.google.com/forms/d/e/1FAIpQLScjPPacKUjmN_C8JJPPoCk6JSAwG8D_foqW6YCuzvdWV6PiqA/viewform";
 
 const FinanciacionPage = () => {
   const navigate = useNavigate();
   const [id, setId] = useState<string | null>(null);
   const { turno } = useActiveTurno();
+  const { state } = useFlow();
+  const esPresencial = state.modalidad === "sede";
 
   useEffect(() => {
     setId(localStorage.getItem("ciaf_financiacion_id"));
@@ -39,6 +43,39 @@ const FinanciacionPage = () => {
             <div className="mb-6">
               <MiTurnoCard turnoId={turno.id} />
             </div>
+          )}
+
+          {esPresencial && (
+            <a
+              href={ENCUESTA_CARTERA_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group mb-6 block overflow-hidden rounded-2xl border border-ciaf-gold/40 bg-gradient-to-br from-[#CCC399] via-[#d9d1ad] to-[#CCC399] p-5 text-ciaf-blue shadow-lg transition-all hover:shadow-xl hover:-translate-y-0.5"
+            >
+              <div className="flex items-start gap-4">
+                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-ciaf-blue text-white ring-1 ring-ciaf-blue/30">
+                  <Star className="h-6 w-6" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-[10px] font-semibold uppercase tracking-wider opacity-80">
+                    Área de Cartera CIAF
+                  </p>
+                  <p className="text-base font-bold leading-tight">
+                    ¡Tu opinión es el primer paso!
+                  </p>
+                  <p className="text-xs leading-relaxed mt-2 text-ciaf-blue/85">
+                    En CIAF creemos que cada experiencia cuenta. Cada conversación, cada duda y cada proceso hace parte de tu camino… y también del nuestro.
+                  </p>
+                  <p className="text-xs leading-relaxed mt-2 text-ciaf-blue/85">
+                    Hoy queremos escucharte de verdad: cómo fue tu experiencia con el equipo de Cartera, qué hicimos bien y en qué podemos mejorar. Tu opinión se convierte en acciones para acompañarte mejor.
+                  </p>
+                  <p className="text-xs font-semibold mt-3 inline-flex items-center gap-1.5">
+                    Cuéntanos aquí (te toma 2 minutos)
+                    <ExternalLink className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+                  </p>
+                </div>
+              </div>
+            </a>
           )}
 
           {/* CTA: Formulario oficial de crédito */}
