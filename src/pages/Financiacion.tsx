@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
-import { ArrowLeft, FileSignature, ExternalLink, FileText } from "lucide-react";
+import { ArrowLeft, FileSignature, ExternalLink, FileText, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import FinanciacionTimeline from "@/components/financiacion/FinanciacionTimeline";
 import MiTurnoCard from "@/components/turnos/MiTurnoCard";
