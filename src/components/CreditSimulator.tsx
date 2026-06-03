@@ -467,6 +467,7 @@ const StickyFinancingBar = ({
 const CreditSimulator = () => {
   usePageView("visita_app");
   const { track } = useTracking();
+  const navigate = useNavigate();
   const [programa, setPrograma] = useState<string>("");
   const [semestre, setSemestre] = useState<string>("");
   const [jornada, setJornada] = useState<TipoJornada | "">("");
@@ -694,7 +695,7 @@ const CreditSimulator = () => {
     setFinancingDismissed(true);
     setShowCashPayment(false);
     localStorage.setItem(FINANCING_DECISION_KEY, "yes");
-    setPaymentModalOpen(true);
+    navigate("/financiacion");
   };
 
   const handleSelectCash = () => {
