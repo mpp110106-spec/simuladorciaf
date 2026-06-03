@@ -45,8 +45,7 @@ const FinanciacionPage = () => {
             </div>
           )}
 
-          {esPresencial && (
-            <a
+          <a
               href={ENCUESTA_CARTERA_URL}
               target="_blank"
               rel="noopener noreferrer"
@@ -78,7 +77,6 @@ const FinanciacionPage = () => {
                 </div>
               </div>
             </a>
-          )}
 
           {/* CTA: Formulario oficial de crédito */}
           <a

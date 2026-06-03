@@ -1,5 +1,5 @@
 import { useState, useMemo, useCallback, useEffect, useRef } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useTracking, usePageView } from "@/hooks/useTracking";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
@@ -467,6 +467,7 @@ const StickyFinancingBar = ({
 const CreditSimulator = () => {
   usePageView("visita_app");
   const { track } = useTracking();
+  const navigate = useNavigate();
   const [programa, setPrograma] = useState<string>("");
   const [semestre, setSemestre] = useState<string>("");
   const [jornada, setJornada] = useState<TipoJornada | "">("");
@@ -694,7 +695,7 @@ const CreditSimulator = () => {
     setFinancingDismissed(true);
     setShowCashPayment(false);
     localStorage.setItem(FINANCING_DECISION_KEY, "yes");
-    setPaymentModalOpen(true);
+    navigate("/financiacion");
   };
 
   const handleSelectCash = () => {
