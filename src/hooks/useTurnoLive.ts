@@ -52,7 +52,7 @@ export function useTurnoLive(turnoId: string | null | undefined) {
     });
 
     const ch = supabase
-      .channel(`turno-live-${turnoId}`)
+      .channel(`turno-live-${turnoId}-${Math.random().toString(36).slice(2)}`)
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "turnos" },
