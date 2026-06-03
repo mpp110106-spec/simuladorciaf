@@ -50,10 +50,11 @@ const FinanciacionPage = () => {
               href={ENCUESTA_CARTERA_URL}
               target="_blank"
               rel="noopener noreferrer"
-              className="group mb-6 block overflow-hidden rounded-2xl border border-ciaf-gold/40 bg-gradient-to-br from-[#CCC399] via-[#d9d1ad] to-[#CCC399] p-5 text-ciaf-blue shadow-lg transition-all hover:shadow-xl hover:-translate-y-0.5"
+              aria-label="Abrir encuesta de satisfacción del Área de Cartera CIAF en una nueva pestaña (Google Forms, 2 minutos)"
+              className="group mb-6 block overflow-hidden rounded-2xl border border-ciaf-gold/40 bg-gradient-to-br from-[#CCC399] via-[#d9d1ad] to-[#CCC399] p-5 text-ciaf-blue shadow-lg transition-all hover:shadow-xl hover:-translate-y-0.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-ciaf-blue focus-visible:ring-offset-2"
             >
               <div className="flex items-start gap-4">
-                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-ciaf-blue text-white ring-1 ring-ciaf-blue/30">
+                <div aria-hidden="true" className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-ciaf-blue text-white ring-1 ring-ciaf-blue/30">
                   <Star className="h-6 w-6" />
                 </div>
                 <div className="flex-1 min-w-0">
@@ -69,9 +70,10 @@ const FinanciacionPage = () => {
                   <p className="text-xs leading-relaxed mt-2 text-ciaf-blue/85">
                     Hoy queremos escucharte de verdad: cómo fue tu experiencia con el equipo de Cartera, qué hicimos bien y en qué podemos mejorar. Tu opinión se convierte en acciones para acompañarte mejor.
                   </p>
-                  <p className="text-xs font-semibold mt-3 inline-flex items-center gap-1.5">
+                  <p className="text-xs font-semibold mt-3 inline-flex items-center gap-1.5 underline underline-offset-2">
                     Cuéntanos aquí (te toma 2 minutos)
-                    <ExternalLink className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+                    <ExternalLink aria-hidden="true" className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+                    <span className="sr-only">(se abre en una nueva pestaña)</span>
                   </p>
                 </div>
               </div>
