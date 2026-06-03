@@ -51,17 +51,59 @@ export function useTurnoLive(turnoId: string | null | undefined) {
       }
     });
 
-    const ch = supabase
-      .channel(`turno-live-${turnoId}-${Math.random().toString(36).slice(2)}`)
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "turnos" },
-        () => { refresh(); },
-      )
-      .subscribe((status) => {
-        // Re-hydrate state on (re)connect to avoid stale data after socket drops
-        if (status === "SUBSCRIBED") refresh();
-      });
+    let currentChannel: ReturnType<typeof supabase.channel> | null = null;
+    let retryTimer: ReturnType<typeof setTimeout> | null = null;
+    let attempt = 0;
+
+    const connect = () => {
+      if (!active) return;
+      try {
+        const ch = supabase
+          .channel(`turno-live-${turnoId}-${Math.random().toString(36).slice(2)}`)
+          .on(
+            "postgres_changes",
+            { event: "*", schema: "public", table: "turnos" },
+            () => { refresh(); },
+          )
+          .subscribe((status) => {
+            if (!active) return;
+            if (status === "SUBSCRIBED") {
+              attempt = 0;
+              refresh();
+            } else if (
+              status === "CHANNEL_ERROR" ||
+              status === "TIMED_OUT" ||
+              status === "CLOSED"
+            ) {
+              scheduleRetry();
+            }
+          });
+        currentChannel = ch;
+      } catch (err) {
+        console.warn("[useTurnoLive] subscribe falló, reintentando", err);
+        scheduleRetry();
+      }
+    };
+
+    const scheduleRetry = () => {
+      if (!active || retryTimer) return;
+      // Exponential backoff: 1s, 2s, 4s, 8s, hasta 30s
+      const delay = Math.min(30000, 1000 * Math.pow(2, attempt));
+      attempt += 1;
+      retryTimer = setTimeout(() => {
+        retryTimer = null;
+        if (!active) return;
+        if (currentChannel) {
+          try { supabase.removeChannel(currentChannel); } catch { /* ignore */ }
+          currentChannel = null;
+        }
+        // Fallback: re-hidratar por RPC mientras se restablece el canal
+        refresh();
+        connect();
+      }, delay);
+    };
+
+    connect();
 
     // Safety net: periodic re-sync every 20s and on tab focus
     const interval = setInterval(refresh, 20000);
@@ -71,10 +113,13 @@ export function useTurnoLive(turnoId: string | null | undefined) {
 
     return () => {
       active = false;
+      if (retryTimer) clearTimeout(retryTimer);
       clearInterval(interval);
       window.removeEventListener("focus", onFocus);
       document.removeEventListener("visibilitychange", onFocus);
-      supabase.removeChannel(ch);
+      if (currentChannel) {
+        try { supabase.removeChannel(currentChannel); } catch { /* ignore */ }
+      }
     };
   }, [turnoId]);
 
