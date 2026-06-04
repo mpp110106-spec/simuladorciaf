@@ -7,8 +7,8 @@ import { useFlow, type SedeCodigo } from "@/stores/flowStore";
 interface Sede { id: string; codigo: string; nombre: string; }
 
 const META: Record<string, { titulo: string; sub: string; icon: typeof Building2 }> = {
-  CRAI:  { titulo: "Sede CRAI",  sub: "Edificio principal · Atención académica", icon: Building2 },
-  SEXTA: { titulo: "Sede Sexta", sub: "Calle 6 · Atención comercial",            icon: MapPin },
+  CRAI:  { titulo: "Sede CRAI",  sub: "Cl. 20 #4-57 · Atención académica", icon: Building2 },
+  SEXTA: { titulo: "Sede Sexta", sub: "Cra. 6 #24-56 · Atención comercial", icon: MapPin },
 };
 
 const SedeSelector = () => {
