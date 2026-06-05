@@ -341,6 +341,36 @@ export type Database = {
         }
         Relationships: []
       }
+      turno_observaciones: {
+        Row: {
+          autor_nombre: string
+          autor_rol: string
+          autor_user_id: string
+          created_at: string
+          id: string
+          texto: string
+          turno_id: string
+        }
+        Insert: {
+          autor_nombre: string
+          autor_rol?: string
+          autor_user_id: string
+          created_at?: string
+          id?: string
+          texto: string
+          turno_id: string
+        }
+        Update: {
+          autor_nombre?: string
+          autor_rol?: string
+          autor_user_id?: string
+          created_at?: string
+          id?: string
+          texto?: string
+          turno_id?: string
+        }
+        Relationships: []
+      }
       turnos: {
         Row: {
           asesor_id: string | null
@@ -350,7 +380,14 @@ export type Database = {
           carrera: string | null
           correo: string | null
           created_at: string
+          credito_solicitado: boolean
+          credito_solicitado_at: string | null
+          credito_solicitado_por: string | null
+          documento_identidad: string | null
           estado: string
+          firmado: boolean
+          firmado_at: string | null
+          firmado_por: string | null
           id: string
           idempotency_key: string | null
           is_cross_branch: boolean
@@ -377,7 +414,14 @@ export type Database = {
           carrera?: string | null
           correo?: string | null
           created_at?: string
+          credito_solicitado?: boolean
+          credito_solicitado_at?: string | null
+          credito_solicitado_por?: string | null
+          documento_identidad?: string | null
           estado?: string
+          firmado?: boolean
+          firmado_at?: string | null
+          firmado_por?: string | null
           id?: string
           idempotency_key?: string | null
           is_cross_branch?: boolean
@@ -404,7 +448,14 @@ export type Database = {
           carrera?: string | null
           correo?: string | null
           created_at?: string
+          credito_solicitado?: boolean
+          credito_solicitado_at?: string | null
+          credito_solicitado_por?: string | null
+          documento_identidad?: string | null
           estado?: string
+          firmado?: boolean
+          firmado_at?: string | null
+          firmado_por?: string | null
           id?: string
           idempotency_key?: string | null
           is_cross_branch?: boolean
@@ -466,6 +517,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      add_turno_observacion: {
+        Args: { p_texto: string; p_turno_id: string }
+        Returns: string
+      }
       admin_asesoras_resumen: { Args: never; Returns: Json }
       admin_cola_lra: { Args: never; Returns: Json }
       admin_kpis_globales: { Args: never; Returns: Json }
@@ -487,6 +542,7 @@ export type Database = {
         Args: { p_observaciones?: string; p_turno_id: string }
         Returns: undefined
       }
+      get_turno_detalle: { Args: { p_turno_id: string }; Returns: Json }
       get_turno_publico: {
         Args: { p_id: string }
         Returns: {
@@ -512,6 +568,14 @@ export type Database = {
       is_asesora: { Args: never; Returns: boolean }
       is_my_turno: { Args: { _turno_id: string }; Returns: boolean }
       is_within_business_hours: { Args: { p_ts?: string }; Returns: boolean }
+      mark_credito_solicitado: {
+        Args: { p_solicitado: boolean; p_turno_id: string }
+        Returns: undefined
+      }
+      mark_firma_estudiante: {
+        Args: { p_firmado: boolean; p_turno_id: string }
+        Returns: undefined
+      }
       reassign_pending: { Args: { p_asesor_id: string }; Returns: number }
       request_turno:
         | {
@@ -591,6 +655,10 @@ export type Database = {
           }
       set_asesor_estado: {
         Args: { p_estado: Database["public"]["Enums"]["asesor_estado"] }
+        Returns: undefined
+      }
+      set_turno_documento: {
+        Args: { p_documento: string; p_turno_id: string }
         Returns: undefined
       }
       start_atencion: { Args: { p_turno_id: string }; Returns: undefined }
