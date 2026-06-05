@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
-import { Phone, Mail, Play, Square, Pause, GraduationCap, Banknote } from "lucide-react";
+import { Phone, Mail, Play, Square, Pause, GraduationCap, Banknote, FileText } from "lucide-react";
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
@@ -111,6 +112,30 @@ export default function TurnoCard({ turno, onStart, onFinish, onCancel }: Props)
               <Pause className="w-3.5 h-3.5" /> Cancelar
             </Button>
           )}
+          <Button
+            asChild
+            size="sm"
+            variant="outline"
+            className="ml-auto gap-1.5 border-[#0699d9]/30 text-[#013084] hover:bg-[#0699d9]/10"
+          >
+            <Link to={`/operacion/turno/${turno.id}`}>
+              <FileText className="w-3.5 h-3.5" /> Ver detalle
+            </Link>
+          </Button>
+        </div>
+      )}
+      {!(onStart || onFinish || onCancel) && (
+        <div className="mt-4">
+          <Button
+            asChild
+            size="sm"
+            variant="outline"
+            className="w-full gap-1.5 border-[#0699d9]/30 text-[#013084] hover:bg-[#0699d9]/10"
+          >
+            <Link to={`/operacion/turno/${turno.id}`}>
+              <FileText className="w-3.5 h-3.5" /> Ver detalle del turno
+            </Link>
+          </Button>
         </div>
       )}
     </motion.div>

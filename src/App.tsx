@@ -16,10 +16,12 @@ import FinanciacionPage from "./pages/Financiacion";
 import Operacion from "./pages/Operacion";
 import Admin from "./pages/Admin";
 import AdminOperativo from "./pages/AdminOperativo";
+import TurnoDetalle from "./pages/TurnoDetalle";
 import { AuthProvider } from "./contexts/AuthContext";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
 import AsesoraRoute from "./components/auth/AsesoraRoute";
 import SuperAdminRoute from "./components/auth/SuperAdminRoute";
+import StaffRoute from "./components/auth/StaffRoute";
 import PersistentTurnoBadge from "./components/turnos/PersistentTurnoBadge";
 import { FlowProvider } from "./stores/flowStore";
 import WizardStepper from "./components/wizard/WizardStepper";
@@ -44,6 +46,7 @@ const App = () => (
               <Route path="/financiacion" element={<FinanciacionPage />} />
               <Route path="/auth" element={<Auth />} />
               <Route path="/operacion" element={<AsesoraRoute><Operacion /></AsesoraRoute>} />
+              <Route path="/operacion/turno/:id" element={<StaffRoute><TurnoDetalle /></StaffRoute>} />
               <Route path="/admin" element={<SuperAdminRoute><Admin /></SuperAdminRoute>} />
               <Route path="/admin/operativo" element={<SuperAdminRoute><AdminOperativo /></SuperAdminRoute>} />
               <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
