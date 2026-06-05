@@ -23,6 +23,7 @@ export const turnosService = {
       p_sede_id: input.sede_id ?? undefined,
       p_idempotency_key: input.idempotency_key ?? undefined,
     });
+    console.log("RPC response:", JSON.stringify(data, null, 2));
     if (error) throw error;
     const turno = data?.[0];
     if (!turno) {
@@ -30,9 +31,15 @@ export const turnosService = {
     }
     if (turno.asesor_nombre) {
       // Debug rotación LRA: nombre + hora local
-      const horaLocal = new Date().toLocaleTimeString("es-CO", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+      const horaLocal = new Date().toLocaleTimeString("es-CO", {
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+      });
       // eslint-disable-next-line no-console
-      console.log(`[LRA] Asignando a ${turno.asesor_nombre} (sede solicitada: ${input.sede_id ?? "—"}) a las ${horaLocal}`);
+      console.log(
+        `[LRA] Asignando a ${turno.asesor_nombre} (sede solicitada: ${input.sede_id ?? "—"}) a las ${horaLocal}`,
+      );
     } else {
       // eslint-disable-next-line no-console
       console.warn(`[LRA] No hay asesora disponible para la sede ${input.sede_id ?? "—"}`);
