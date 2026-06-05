@@ -29,7 +29,7 @@ export function useColaSede(sedeId: string | null | undefined) {
       setLoading(false);
       return;
     }
-    const hoy = new Date(new Date().toLocaleString("en-US", { timeZone: "America/Bogota" }));
+    const hoy = new Date();
     const fecha = hoy.toISOString().slice(0, 10);
     console.log("fechaaa", fecha);
     const { data, error } = await supabase
