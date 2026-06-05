@@ -24,9 +24,14 @@ export function useColaSede(sedeId: string | null | undefined) {
   const [loading, setLoading] = useState(true);
 
   const refresh = useCallback(async () => {
-    if (!sedeId) { setTurnos([]); setLoading(false); return; }
+    if (!sedeId) {
+      setTurnos([]);
+      setLoading(false);
+      return;
+    }
     const hoy = new Date(new Date().toLocaleString("en-US", { timeZone: "America/Bogota" }));
     const fecha = hoy.toISOString().slice(0, 10);
+    console.log("fechaaa", fecha);
     const { data, error } = await supabase
       .from("turnos")
       .select("id,numero,nombre,telefono,tipificacion,carrera,semestre,sede_id,created_at,prioridad")
@@ -41,7 +46,10 @@ export function useColaSede(sedeId: string | null | undefined) {
     setLoading(false);
   }, [sedeId]);
 
-  useEffect(() => { setLoading(true); refresh(); }, [refresh]);
+  useEffect(() => {
+    setLoading(true);
+    refresh();
+  }, [refresh]);
   useRealtime("turnos", refresh);
 
   return { turnos, loading, refresh };
