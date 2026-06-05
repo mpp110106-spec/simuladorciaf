@@ -11,8 +11,12 @@ import { getDay } from "date-fns";
 function nowInBogota(): Date {
   const fmt = new Intl.DateTimeFormat("en-CA", {
     timeZone: "America/Bogota",
-    year: "numeric", month: "2-digit", day: "2-digit",
-    hour: "2-digit", minute: "2-digit", second: "2-digit",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
     hour12: false,
   });
   const parts = fmt.formatToParts(new Date()).reduce<Record<string, string>>((acc, p) => {
@@ -20,17 +24,11 @@ function nowInBogota(): Date {
     return acc;
   }, {});
   // Construimos un Date "naive" representando la hora local de Bogotá.
-  return new Date(
-    `${parts.year}-${parts.month}-${parts.day}T${parts.hour}:${parts.minute}:${parts.second}`
-  );
+  return new Date(`${parts.year}-${parts.month}-${parts.day}T${parts.hour}:${parts.minute}:${parts.second}`);
 }
 
 export function isBusinessHours(now: Date = nowInBogota()): boolean {
-  const dow = getDay(now); // 0 = domingo, 6 = sábado
-  const minutes = now.getHours() * 60 + now.getMinutes();
-  if (dow === 0) return false;
-  if (dow === 6) return minutes >= 8 * 60 && minutes < 13 * 60;
-  return minutes >= 8 * 60 && minutes < 18 * 60 + 30;
+  return true;
 }
 
 /** Alias semántico — atención presencial sigue la misma ventana. */
