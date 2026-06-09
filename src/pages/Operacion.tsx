@@ -46,6 +46,25 @@ export default function Operacion() {
   const [takingId, setTakingId] = useState<string | null>(null);
   const [showEncuesta, setShowEncuesta] = useState(false);
 
+  // Persistimos los turnos para los que ya se mostró la encuesta para evitar
+  // duplicados si la asesora recarga o si se disparan eventos repetidos.
+  const ENCUESTA_KEY = "ciaf.encuesta.shown.turnos";
+  const getShownSet = (): Set<string> => {
+    try {
+      const raw = localStorage.getItem(ENCUESTA_KEY);
+      return new Set(raw ? (JSON.parse(raw) as string[]) : []);
+    } catch { return new Set(); }
+  };
+  const markShown = (id: string) => {
+    try {
+      const set = getShownSet();
+      set.add(id);
+      // mantenemos solo los últimos 200 para no crecer indefinidamente
+      const arr = Array.from(set).slice(-200);
+      localStorage.setItem(ENCUESTA_KEY, JSON.stringify(arr));
+    } catch { /* noop */ }
+  };
+
   // Heartbeat de presencia: cada 30s mientras el panel esté abierto.
   // Asegura que la asignación automática solo entregue turnos a quien esté realmente conectada.
   useEffect(() => {
@@ -114,10 +133,14 @@ export default function Operacion() {
   };
   const handleFinish = async (obs: string) => {
     if (!finishTarget) return;
+    const turnoId = finishTarget.id;
     try {
-      await operacionService.finishAtencion(finishTarget.id, obs);
+      await operacionService.finishAtencion(turnoId, obs);
       toast.success("Atención finalizada");
-      setShowEncuesta(true);
+      if (!getShownSet().has(turnoId)) {
+        markShown(turnoId);
+        setShowEncuesta(true);
+      }
     } catch { toast.error("No se pudo finalizar"); }
   };
   const handleCancel = async (id: string) => {
