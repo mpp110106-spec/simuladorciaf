@@ -15,6 +15,7 @@ import EstadoSelector from "@/components/operacion/EstadoSelector";
 import TurnoCard from "@/components/operacion/TurnoCard";
 import FinishModal from "@/components/operacion/FinishModal";
 import HorarioModal from "@/components/operacion/HorarioModal";
+import EncuestaModal from "@/components/operacion/EncuestaModal";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
@@ -43,6 +44,7 @@ export default function Operacion() {
   const [finishTarget, setFinishTarget] = useState<Turno | null>(null);
   const [showHorario, setShowHorario] = useState(false);
   const [takingId, setTakingId] = useState<string | null>(null);
+  const [showEncuesta, setShowEncuesta] = useState(false);
 
   // Heartbeat de presencia: cada 30s mientras el panel esté abierto.
   // Asegura que la asignación automática solo entregue turnos a quien esté realmente conectada.
@@ -112,8 +114,11 @@ export default function Operacion() {
   };
   const handleFinish = async (obs: string) => {
     if (!finishTarget) return;
-    try { await operacionService.finishAtencion(finishTarget.id, obs); toast.success("Atención finalizada"); }
-    catch { toast.error("No se pudo finalizar"); }
+    try {
+      await operacionService.finishAtencion(finishTarget.id, obs);
+      toast.success("Atención finalizada");
+      setShowEncuesta(true);
+    } catch { toast.error("No se pudo finalizar"); }
   };
   const handleCancel = async (id: string) => {
     try { await operacionService.cancelTurno(id); toast.success("Turno cancelado"); }
@@ -308,6 +313,7 @@ export default function Operacion() {
 
       <FinishModal turno={finishTarget} onClose={() => setFinishTarget(null)} onConfirm={handleFinish} />
       <HorarioModal open={showHorario} asesora={asesora} onClose={() => setShowHorario(false)} onSave={handleSaveHorario} />
+      <EncuestaModal open={showEncuesta} onClose={() => setShowEncuesta(false)} />
     </>
   );
 }
