@@ -384,6 +384,7 @@ export type Database = {
           credito_solicitado_at: string | null
           credito_solicitado_por: string | null
           documento_identidad: string | null
+          encuesta_modal_shown_at: string | null
           estado: string
           firmado: boolean
           firmado_at: string | null
@@ -418,6 +419,7 @@ export type Database = {
           credito_solicitado_at?: string | null
           credito_solicitado_por?: string | null
           documento_identidad?: string | null
+          encuesta_modal_shown_at?: string | null
           estado?: string
           firmado?: boolean
           firmado_at?: string | null
@@ -452,6 +454,7 @@ export type Database = {
           credito_solicitado_at?: string | null
           credito_solicitado_por?: string | null
           documento_identidad?: string | null
+          encuesta_modal_shown_at?: string | null
           estado?: string
           firmado?: boolean
           firmado_at?: string | null
@@ -571,6 +574,10 @@ export type Database = {
       mark_credito_solicitado: {
         Args: { p_solicitado: boolean; p_turno_id: string }
         Returns: undefined
+      }
+      mark_encuesta_modal_shown: {
+        Args: { p_turno_id: string }
+        Returns: boolean
       }
       mark_firma_estudiante: {
         Args: { p_firmado: boolean; p_turno_id: string }
