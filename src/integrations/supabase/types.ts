@@ -225,6 +225,13 @@ export type Database = {
             foreignKeyName: "encuestas_satisfaccion_turno_id_fkey"
             columns: ["turno_id"]
             isOneToOne: true
+            referencedRelation: "encuesta_modal_audit"
+            referencedColumns: ["turno_id"]
+          },
+          {
+            foreignKeyName: "encuestas_satisfaccion_turno_id_fkey"
+            columns: ["turno_id"]
+            isOneToOne: true
             referencedRelation: "turnos"
             referencedColumns: ["id"]
           },
@@ -517,7 +524,41 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      encuesta_modal_audit: {
+        Row: {
+          asesor_id: string | null
+          asesor_nombre: string | null
+          atencion_fin: string | null
+          atencion_inicio: string | null
+          created_at: string | null
+          encuesta_modal_shown_at: string | null
+          estado: string | null
+          modal_shown: boolean | null
+          numero: number | null
+          sede_codigo: string | null
+          sede_id: string | null
+          sede_nombre: string | null
+          turno_fecha: string | null
+          turno_id: string | null
+          updated_at: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "turnos_asesor_id_fkey"
+            columns: ["asesor_id"]
+            isOneToOne: false
+            referencedRelation: "asesores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "turnos_sede_id_fkey"
+            columns: ["sede_id"]
+            isOneToOne: false
+            referencedRelation: "sedes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       add_turno_observacion: {
@@ -544,6 +585,32 @@ export type Database = {
       finish_atencion: {
         Args: { p_observaciones?: string; p_turno_id: string }
         Returns: undefined
+      }
+      get_encuesta_modal_audit: {
+        Args: { p_turno_id?: string }
+        Returns: {
+          asesor_id: string | null
+          asesor_nombre: string | null
+          atencion_fin: string | null
+          atencion_inicio: string | null
+          created_at: string | null
+          encuesta_modal_shown_at: string | null
+          estado: string | null
+          modal_shown: boolean | null
+          numero: number | null
+          sede_codigo: string | null
+          sede_id: string | null
+          sede_nombre: string | null
+          turno_fecha: string | null
+          turno_id: string | null
+          updated_at: string | null
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "encuesta_modal_audit"
+          isOneToOne: false
+          isSetofReturn: true
+        }
       }
       get_turno_detalle: { Args: { p_turno_id: string }; Returns: Json }
       get_turno_publico: {
