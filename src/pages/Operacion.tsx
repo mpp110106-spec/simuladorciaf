@@ -7,6 +7,7 @@ import {
 } from "lucide-react";
 
 import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 import { useMiAsesora } from "@/hooks/useMiAsesora";
 import { useMisTurnos } from "@/hooks/useMisTurnos";
 import { useColaSede } from "@/hooks/useColaSede";
