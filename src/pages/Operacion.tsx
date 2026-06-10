@@ -46,20 +46,21 @@ export default function Operacion() {
   const [takingId, setTakingId] = useState<string | null>(null);
   const [showEncuesta, setShowEncuesta] = useState(false);
 
-  // Persistimos los turnos para los que ya se mostró la encuesta para evitar
-  // duplicados si la asesora recarga o si se disparan eventos repetidos.
+  // Deduplicación del modal de encuesta sincronizada con el backend:
+  // marcamos `encuesta_modal_shown_at` en `turnos` vía RPC atómico, así
+  // funciona entre dispositivos y navegadores. Mantenemos un caché local
+  // sólo para evitar la llamada redundante en la misma sesión.
   const ENCUESTA_KEY = "ciaf.encuesta.shown.turnos";
-  const getShownSet = (): Set<string> => {
+  const getLocalShown = (): Set<string> => {
     try {
       const raw = localStorage.getItem(ENCUESTA_KEY);
       return new Set(raw ? (JSON.parse(raw) as string[]) : []);
     } catch { return new Set(); }
   };
-  const markShown = (id: string) => {
+  const markLocalShown = (id: string) => {
     try {
-      const set = getShownSet();
+      const set = getLocalShown();
       set.add(id);
-      // mantenemos solo los últimos 200 para no crecer indefinidamente
       const arr = Array.from(set).slice(-200);
       localStorage.setItem(ENCUESTA_KEY, JSON.stringify(arr));
     } catch { /* noop */ }
@@ -137,9 +138,18 @@ export default function Operacion() {
     try {
       await operacionService.finishAtencion(turnoId, obs);
       toast.success("Atención finalizada");
-      if (!getShownSet().has(turnoId)) {
-        markShown(turnoId);
+      if (getLocalShown().has(turnoId)) return;
+      // Marca atómica en el backend: devuelve true solo si fue la primera vez.
+      const { data: firstTime, error } = await supabase.rpc(
+        "mark_encuesta_modal_shown",
+        { p_turno_id: turnoId } as never
+      );
+      if (!error && firstTime === true) {
+        markLocalShown(turnoId);
         setShowEncuesta(true);
+      } else if (!error) {
+        // Ya se había mostrado en otro dispositivo/navegador.
+        markLocalShown(turnoId);
       }
     } catch { toast.error("No se pudo finalizar"); }
   };
