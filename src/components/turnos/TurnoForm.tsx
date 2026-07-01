@@ -213,21 +213,90 @@ const TurnoForm = ({ simulacionValor, onSuccess }: TurnoFormProps) => {
 
   if (done) {
     return (
-      <Card className="mt-6 border-ciaf-blue/20">
-        <CardContent className="py-10 flex flex-col items-center text-center gap-3">
-          <div className="w-14 h-14 rounded-full bg-ciaf-blue-light flex items-center justify-center">
-            <CheckCircle2 className="w-7 h-7 text-ciaf-blue" />
-          </div>
-          <h3 className="text-lg font-semibold text-foreground">Tu turno está registrado</h3>
-          <p className="text-sm text-muted-foreground max-w-md">
-            Un asesor CIAF te contactará pronto para continuar con el proceso. Gracias por confiar en
-            nosotros.
+      <div className="mt-6 flex flex-col gap-6 animate-fade-in">
+        {/* Mensaje de confirmación */}
+        <Card className="border-ciaf-blue/20">
+          <CardContent className="py-8 flex flex-col items-center text-center gap-4">
+            <div className="w-16 h-16 rounded-full bg-ciaf-blue-light flex items-center justify-center">
+              <CheckCircle2 className="w-8 h-8 text-ciaf-blue" />
+            </div>
+            <div className="space-y-1">
+              <h3 className="text-xl font-semibold text-foreground">
+                ¡Tu turno ha sido solicitado con éxito!
+              </h3>
+              <p className="text-sm text-muted-foreground max-w-md mx-auto">
+                Un asesor de CIAF se pondrá en contacto contigo pronto para brindarte atención personalizada.
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Sección: Adelanta tu Proceso */}
+        <Card className="border-ciaf-blue/30 shadow-md bg-gradient-to-br from-ciaf-blue/[0.03] to-ciaf-light-blue/[0.06]">
+          <CardContent className="py-6 px-5">
+            <div className="flex items-center gap-2 mb-4">
+              <Zap className="w-5 h-5 text-ciaf-blue" />
+              <h4 className="text-base font-semibold text-ciaf-blue">
+                ¿Quieres adelantar tu proceso?
+              </h4>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {/* Botón Pagar Cuota Inicial */}
+              <button
+                type="button"
+                onClick={() => navigate("/financiacion")}
+                className="group relative flex flex-col items-start gap-2 rounded-xl border border-ciaf-blue/20 bg-white p-4 text-left transition-all hover:border-ciaf-blue/40 hover:shadow-soft focus:outline-none focus:ring-2 focus:ring-ciaf-blue/30"
+              >
+                <div className="flex items-center gap-2 w-full">
+                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-ciaf-blue text-white">
+                    <CreditCard className="h-4 w-4" />
+                  </div>
+                  <span className="text-sm font-semibold text-foreground">Pagar Cuota Inicial</span>
+                  <ArrowRight className="ml-auto h-4 w-4 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Realiza el pago de tu cuota inicial de forma segura y rápida en línea.
+                </p>
+              </button>
+
+              {/* Botón Llenar Formulario de Crédito */}
+              <a
+                href="https://ciaf.digital/inscribete/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group relative flex flex-col items-start gap-2 rounded-xl border border-ciaf-blue/20 bg-white p-4 text-left transition-all hover:border-ciaf-blue/40 hover:shadow-soft focus:outline-none focus:ring-2 focus:ring-ciaf-blue/30"
+              >
+                <div className="flex items-center gap-2 w-full">
+                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-ciaf-light-blue text-white">
+                    <FileText className="h-4 w-4" />
+                  </div>
+                  <span className="text-sm font-semibold text-foreground">Llenar Formulario de Crédito</span>
+                  <ArrowRight className="ml-auto h-4 w-4 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Completa tu estudio de crédito para agilizar tu financiación.
+                </p>
+              </a>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Recordatorio de espera (discreto) */}
+        <div className="flex items-start gap-3 rounded-lg border border-muted/60 bg-muted/30 p-4">
+          <Clock className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
+          <p className="text-xs text-muted-foreground">
+            Si lo prefieres, espera la llamada de nuestro asesor para recibir asistencia personalizada.
           </p>
-          <Button variant="outline" className="mt-2" onClick={() => setDone(false)}>
+        </div>
+
+        {/* Reset */}
+        <div className="flex justify-center">
+          <Button variant="outline" size="sm" onClick={() => setDone(false)}>
             Solicitar otro turno
           </Button>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     );
   }
 
