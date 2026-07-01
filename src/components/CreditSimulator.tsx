@@ -713,7 +713,7 @@ const CreditSimulator = () => {
   };
 
   const handlePayInitialQuota = () => {
-    setPaymentModalOpen(true);
+    navigate("/financiacion");
   };
 
   return (
