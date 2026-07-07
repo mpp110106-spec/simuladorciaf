@@ -203,7 +203,7 @@ const esJornadaOrdinaria = (jornada: TipoJornada): boolean => {
   return !esTipoExtraordinaria(jornada);
 };
 
-const PORCENTAJES_CUOTA_INICIAL = [10, 20, 30, 40, 50];
+const PORCENTAJES_CUOTA_INICIAL = [20, 30, 40, 50];
 const OPCIONES_CUOTAS = [4, 5, 6];
 
 const ESTUDIO_CREDITO = 48000;
@@ -581,13 +581,13 @@ const CreditSimulator = () => {
       if (tipoCuotaInicial === "monto") {
         const monto = parseInputValue(montoCuotaInicial);
         if (montoCuotaInicial && monto <= 0) e.cuotaInicial = "Ingresa un monto válido para la cuota inicial.";
-        else if (montoCuotaInicial && (monto / total) * 100 < 10)
-          e.cuotaInicial = `Mínimo ${formatCurrency(Math.ceil(total * 0.1))} (10% del valor).`;
+        else if (montoCuotaInicial && (monto / total) * 100 < 20)
+          e.cuotaInicial = `Mínimo ${formatCurrency(Math.ceil(total * 0.2))} (20% del valor).`;
         else if (montoCuotaInicial && monto > total)
           e.cuotaInicial = "La cuota inicial no puede superar el valor total.";
       } else {
         const pct = parseInt(porcentajeCuotaInicial, 10);
-        if (pct < 10) e.cuotaInicial = "El porcentaje mínimo es 10%.";
+        if (pct < 20) e.cuotaInicial = "El porcentaje mínimo es 20%.";
         else if (pct > 100) e.cuotaInicial = "El porcentaje máximo es 100%.";
       }
     }
